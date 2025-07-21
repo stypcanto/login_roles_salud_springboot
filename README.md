@@ -60,7 +60,7 @@ Cada servicio está encapsulado y comunicado por Docker (ver `docker-compose.yml
 
 ## 🧩 Sobre el archivo `.env`
 
-# 📍 ¿Dónde está?
+### 📍 ¿Dónde está?
 
 - El archivo .env está ubicado en frontend/.env
 
@@ -80,6 +80,34 @@ const apiUrl = import.meta.env.VITE_API_URL;
 ```
 
 🔥 Recomendación: Nunca hagas hardcode de rutas. Usa siempre el .env.
+
+## 📁 Archivo de configuración API - `api.js`
+
+Para mantener una estructura limpia y facilitar futuras modificaciones, he creado el archivo:
+
+
+### ¿Para qué sirve?
+
+Este archivo centraliza la URL base del backend, tomando la variable desde el archivo `.env`. Esto es muy útil porque permite que el frontend se conecte dinámicamente a diferentes entornos (desarrollo, producción, etc.) sin tener que modificar múltiples archivos.
+
+### Código dentro del archivo `api.js`:
+
+```js
+export const apiUrl = import.meta.env.VITE_API_URL;
+````
+
+De esta manera, el día que necesite llamar al backend, simplemente puedo hacer:
+
+```js
+import { apiUrl } from '../config/api';
+
+fetch(`${apiUrl}/usuarios`)
+  .then(response => response.json())
+  .then(data => {
+    console.log('Usuarios:', data);
+  });
+
+```
 
 
 ## 🔄 ¿Cómo escalar esta plantilla en el futuro?
