@@ -29,6 +29,33 @@ Esta es una plantilla base de desarrollo fullstack que integra:
 └── README.md                # Documentación del proyecto
 ```
 
+## 🔧 Versiones utilizadas
+
+Para lograr que Tailwind CSS funcionara correctamente con React + Vite, fue necesario alinear las versiones de las herramientas involucradas. Inicialmente se presentaron errores relacionados con la compatibilidad de versiones, especialmente al instalar Tailwind.
+
+### ✔️ Versiones utilizadas exitosamente:
+
+- **Node.js**: `v20.11.1`
+- **npm**: `10.2.4`
+- **Tailwind CSS**: `v3.4.1`
+- **Vite**: `v5.2.8`
+- **React**: `v18.2.0`
+
+> ⚠️ **Problemas detectados:**
+> Al instalar Tailwind con versiones antiguas de Node.js y npm, se presentaron errores como:
+> - `Cannot find module 'tailwindcss'`
+> - Problemas con el archivo `tailwind.config.js` que no se generaba correctamente.
+> - `postcss` y `autoprefixer` no funcionaban al compilar.
+
+### ✅ Solución aplicada:
+
+1. **Actualización de Node.js y npm** a versiones modernas usando `nvm` o descarga oficial.
+2. Instalación de Tailwind siguiendo la documentación oficial para Vite:
+   ```bash
+   npm install -D tailwindcss postcss autoprefixer
+   npx tailwindcss init -p
+
+
 ## 🚀 ¿Cómo ejecutarlo?
 
 ```bash
@@ -41,11 +68,22 @@ docker-compose up --build -d
 
 ```
 
-### Accesos:
+## ✅ Estado actual de la plantilla
 
-- Frontend: http://localhost:3000
-- Backend (API REST): http://localhost:8080
-- PostgreSQL: puerto 5432 (interno)
+- 🐳 Docker Compose funciona con **frontend** y **backend** sin errores.
+- ⚙️ Backend **Spring Boot** responde correctamente en: [http://localhost:8080](http://localhost:8080)
+- 🖥️ Frontend **React (Vite)** sirve correctamente desde Docker: [http://localhost:3000](http://localhost:3000)
+- 🎨 **Tailwind CSS** y **Vite** están compilando sin problemas.
+- 🔄 La comunicación entre **frontend y backend** está preparada para ser implementada con llamadas `fetch` o librerías como `axios`.
+
+> Nota: Puedes conectarte a la base de datos con un cliente como DBeaver o pgAdmin usando:
+>
+> - Host: `localhost`
+> - Puerto: `5432`
+> - Usuario: `postgres`
+> - Contraseña: `postgres`
+> - Base de datos: `mydb`
+
 
 ## ⚙️ Arquitectura del sistema
 
@@ -64,7 +102,7 @@ Cada servicio está encapsulado y comunicado por Docker (ver `docker-compose.yml
 
 - El archivo .env está ubicado en frontend/.env
 
-### ¿Para qué sirve?
+### 📍¿Para qué sirve?
 
 Define variables de entorno del frontend. En esta plantilla se configura la URL del backend:
 
@@ -72,7 +110,7 @@ Define variables de entorno del frontend. En esta plantilla se configura la URL 
 VITE_API_URL=http://localhost:8080
 ```
 
-## ¿Cómo se usa?
+### 📍 ¿Cómo se usa?
 En React (Vite), accedes así:
 
 ```js
@@ -81,7 +119,7 @@ const apiUrl = import.meta.env.VITE_API_URL;
 
 🔥 Recomendación: Nunca hagas hardcode de rutas. Usa siempre el .env.
 
-## 📁 Archivo de configuración API - `api.js`
+### 📁 Archivo de configuración API - `api.js`
 
 Para mantener una estructura limpia y facilitar futuras modificaciones, he creado el archivo:
 
@@ -108,6 +146,12 @@ fetch(`${apiUrl}/usuarios`)
   });
 
 ```
+
+✅ Ventaja: Si más adelante quiero reutilizar esta plantilla en otro proyecto, solo necesito cambiar la variable VITE_API_URL en el .env sin tocar nada más en el código.
+
+Este archivo api.js quedará como base para futuras conexiones API que usarán esta plantilla.
+
+
 
 
 ## 🔄 ¿Cómo escalar esta plantilla en el futuro?
