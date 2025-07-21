@@ -1,4 +1,4 @@
-### 🧠 Plantilla Base: React + Spring Boot + PostgreSQL + Docker
+# 🧠 Plantilla Base: React + Spring Boot + PostgreSQL + Docker
 
 ## 🧱 ¿Qué es esto?
 Esta es una plantilla base de desarrollo fullstack que integra:
@@ -8,7 +8,7 @@ Esta es una plantilla base de desarrollo fullstack que integra:
 - Base de datos: PostgreSQL
 - Contenedores: Docker + Docker Compose
 
-# ⚙️ Ideal para comenzar cualquier aplicación web modular y escalable en segundos.
+### ⚙️ Ideal para comenzar cualquier aplicación web modular y escalable en segundos.
 
 ## 📁 Estructura del proyecto
 
@@ -41,7 +41,7 @@ docker-compose up --build -d
 
 ```
 
-# Accesos:
+### Accesos:
 
 - Frontend: http://localhost:3000
 - Backend (API REST): http://localhost:8080
@@ -60,11 +60,11 @@ Cada servicio está encapsulado y comunicado por Docker (ver `docker-compose.yml
 
 ## 🧩 Sobre el archivo `.env`
 
-### 📍 ¿Dónde está?
+# 📍 ¿Dónde está?
 
 - El archivo .env está ubicado en frontend/.env
 
-# ¿Para qué sirve?
+### ¿Para qué sirve?
 
 Define variables de entorno del frontend. En esta plantilla se configura la URL del backend:
 
@@ -82,7 +82,7 @@ const apiUrl = import.meta.env.VITE_API_URL;
 🔥 Recomendación: Nunca hagas hardcode de rutas. Usa siempre el .env.
 
 
-### 🔄 ¿Cómo escalar esta plantilla en el futuro?
+## 🔄 ¿Cómo escalar esta plantilla en el futuro?
 
 - Añadir rutas REST al backend (/api/usuarios, /api/citas, etc.)
 - Conectar el frontend al backend con fetch() o axios
@@ -92,7 +92,7 @@ const apiUrl = import.meta.env.VITE_API_URL;
 
 ## 🛠️ Tareas futuras
 
-### ✅ Añadir rutas REST al backend
+## ✅ Añadir rutas REST al backend
 
 Se recomienda extender el backend con nuevas rutas para manejar recursos clave del sistema. Algunas rutas sugeridas son:
 
@@ -106,7 +106,7 @@ Se recomienda extender el backend con nuevas rutas para manejar recursos clave d
 Estas rutas deben implementarse en controladores Spring Boot bajo el prefijo `/api` para mantener una estructura RESTful clara y consistente.
 
 
-### ✅ Comandos útiles
+## ✅ Comandos útiles
 
 ```bash
 
