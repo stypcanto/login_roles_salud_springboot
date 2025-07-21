@@ -128,11 +128,14 @@ Para mantener una estructura limpia y facilitar futuras modificaciones, he cread
 
 Este archivo centraliza la URL base del backend, tomando la variable desde el archivo `.env`. Esto es muy útil porque permite que el frontend se conecte dinámicamente a diferentes entornos (desarrollo, producción, etc.) sin tener que modificar múltiples archivos.
 
-### Código dentro del archivo `api.js`:
+#### Código dentro del archivo `api.js`:
 
 ```js
 export const apiUrl = import.meta.env.VITE_API_URL;
-````
+```
+
+### 📍 ¿Dónde está?
+El archivo .env está ubicado en: /frontend/src/config
 
 De esta manera, el día que necesite llamar al backend, simplemente puedo hacer:
 
