@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -19,8 +20,8 @@ public class PasswordResetService {
     private final PasswordEncoder passwordEncoder;
 
     public PasswordResetService(UsuarioRepository usuarioRepository,
-                              PasswordResetTokenRepository tokenRepository,
-                              PasswordEncoder passwordEncoder) {
+            PasswordResetTokenRepository tokenRepository,
+            PasswordEncoder passwordEncoder) {
         this.usuarioRepository = usuarioRepository;
         this.tokenRepository = tokenRepository;
         this.passwordEncoder = passwordEncoder;
@@ -28,39 +29,45 @@ public class PasswordResetService {
 
     @Transactional
     public String sendPasswordResetToken(String correo) {
+        System.out.println("🟡 Buscando usuario con correo: " + correo);
+
         Usuario usuario = usuarioRepository.findByCorreo(correo)
-                .orElseThrow(() -> new RuntimeException("Usuario no encontrado con este correo: " + correo));
+                .orElseThrow(() -> new RuntimeException("❌ Usuario no encontrado: " + correo));
 
-        // Eliminar tokens existentes para este usuario
         tokenRepository.deleteByUsuario(usuario);
+        System.out.println("✅ Tokens anteriores eliminados para el usuario");
 
-        // Crear y guardar nuevo token
         PasswordResetToken token = new PasswordResetToken();
         token.setToken(UUID.randomUUID().toString());
         token.setUsuario(usuario);
-        token.setExpiration(LocalDateTime.now().plusHours(1)); // 1 hora de validez
+        token.setExpiration(LocalDateTime.now().plusHours(1));
         tokenRepository.save(token);
 
-        // En producción: enviar email con el enlace de reset
+        System.out.println("🔐 Nuevo token generado: " + token.getToken());
+
         return "Token generado (en producción se enviaría por email): " + token.getToken();
     }
 
     @Transactional
-    public String resetPassword(String token, String newPassword) {
-        PasswordResetToken resetToken = tokenRepository.findByToken(token)
-                .orElseThrow(() -> new RuntimeException("Token inválido o expirado"));
+   public String resetPassword(String token, String newPassword) {
+    Optional<PasswordResetToken> tokenOptional = tokenRepository.findByToken(token);
 
-        if (resetToken.getExpiration().isBefore(LocalDateTime.now())) {
-            throw new RuntimeException("Token expirado");
-        }
-
-        Usuario usuario = resetToken.getUsuario();
-        usuario.setcontrasena(passwordEncoder.encode(newPassword));
-        usuarioRepository.save(usuario);
-
-        // Eliminar el token usado
-        tokenRepository.delete(resetToken);
-
-        return "Contraseña actualizada exitosamente";
+    if (tokenOptional.isEmpty()) {
+        return "Token inválido o expirado.";
     }
+
+    PasswordResetToken resetToken = tokenOptional.get();
+    Usuario usuario = resetToken.getUsuario();
+
+    // Asegúrate que es un usuario existente en la BD (si no se hizo correctamente)
+    Usuario existente = usuarioRepository.findByCorreo(usuario.getCorreo())
+        .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+
+    existente.setContrasena(passwordEncoder.encode(newPassword));
+    usuarioRepository.save(existente);
+
+    tokenRepository.delete(resetToken); // Limpia token usado
+
+    return "Contraseña actualizada correctamente.";
+}
 }

@@ -37,7 +37,7 @@ public class Usuario {
     return this.contrasena;
 }
 
-    public void setcontrasena(String contrasena) {
-        this.contrasena = contrasena;
-    }
+   public void setContrasena(String contrasena) {
+    this.contrasena = contrasena;
+}
 }   

@@ -26,10 +26,11 @@ public class AuthController {
     }
 
     @PostMapping("/forgot-password")
-    public ResponseEntity<String> forgotPassword(@RequestBody @Valid ForgotPasswordRequest request) {
-        String response = passwordResetService.sendPasswordResetToken(request.correo());
-        return ResponseEntity.ok(response);
-    }
+public ResponseEntity<String> forgotPassword(@RequestBody @Valid ForgotPasswordRequest request) {
+    System.out.println("🔔 Solicitud de recuperación para: " + request.correo()); // Log temporal
+    String response = passwordResetService.sendPasswordResetToken(request.correo());
+    return ResponseEntity.ok(response);
+}
 
     @PostMapping("/reset-password")
     public ResponseEntity<String> resetPassword(@RequestBody @Valid ResetPasswordRequest request) {
