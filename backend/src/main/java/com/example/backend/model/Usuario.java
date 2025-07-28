@@ -11,7 +11,7 @@ public class Usuario {
     private Long id;
 
     private String correo;
-    private String contraseña;
+    private String contrasena;
 
     // Getters y Setters
     public Usuario() {
@@ -33,11 +33,11 @@ public class Usuario {
         this.correo = correo;
     }
 
-    public String getContraseña() {
-        return contraseña;
-    }
+   public String getcontrasena() {
+    return this.contrasena;
+}
 
-    public void setContraseña(String contraseña) {
-        this.contraseña = contraseña;
+    public void setcontrasena(String contrasena) {
+        this.contrasena = contrasena;
     }
 }   

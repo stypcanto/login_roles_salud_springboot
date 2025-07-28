@@ -1,4 +1,4 @@
-version: '3.8'
+version: "3.8"
 
 services:
   frontend:
@@ -6,27 +6,48 @@ services:
       context: ./frontend
       dockerfile: Dockerfile
       args:
-        VITE_API_URL: "/api"  # 👈 Este valor debe coincidir con lo que nginx redireccionará
+        VITE_API_URL: "${VITE_API_URL:-http://localhost:8080}"
     ports:
-      - "3000:80"
+      - "${FRONTEND_PORT}:80"
+    environment:
+      NODE_ENV: ${ENVIRONMENT}
     depends_on:
-      - backend
+      backend:
+        condition: service_started
     restart: unless-stopped
+    networks:
+      - app-network
 
   backend:
     build:
       context: ./backend
-      dockerfile: Dockerfile  # 👈 Asegúrate de tener este archivo en ./backend
+      dockerfile: Dockerfile
     ports:
-      - "${SPRING_PORT:-8080}:8080"
-    depends_on:
-      - db
+      - "${SPRING_PORT}:8080"
     environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/${POSTGRES_DB}  # 👈 Asegura esto si no estás usando .env
+      ENVIRONMENT: ${ENVIRONMENT}
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/${POSTGRES_DB}
       SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER}
       SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
-      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      SPRING_JPA_HIBERNATE_DDL_AUTO: ${SPRING_JPA_HIBERNATE_DDL_AUTO:-update}
+      SPRING_MAIL_HOST: ${SMTP_HOST:-smtp.example.com}
+      SPRING_MAIL_PORT: ${SMTP_PORT:-587}
+      SPRING_MAIL_USERNAME: ${SMTP_USERNAME}
+      SPRING_MAIL_PASSWORD: ${SMTP_PASSWORD}
+      SPRING_MAIL_PROPERTIES_MAIL_SMTP_AUTH: "true"
+      SPRING_MAIL_PROPERTIES_MAIL_SMTP_STARTTLS_ENABLE: "true"
+      ALLOWED_ORIGINS: "http://frontend,http://localhost:${FRONTEND_PORT}"
+    depends_on:
+      db:
+        condition: service_healthy
     restart: unless-stopped
+    networks:
+      - app-network
+    # healthcheck:
+    #   test: ["CMD", "curl", "-f", "http://localhost:8080/api/auth/health"]
+    #   interval: 30s
+    #   timeout: 10s
+    #   retries: 3
 
   db:
     image: postgres:16
@@ -35,10 +56,21 @@ services:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     ports:
-      - "${POSTGRES_PORT:-5432}:5432"
+      - "${POSTGRES_PORT}:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
     restart: unless-stopped
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
 volumes:
   pgdata:
+
+networks:
+  app-network:
+    driver: bridge
