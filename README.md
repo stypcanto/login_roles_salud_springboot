@@ -139,12 +139,78 @@ DELETE /api/citas/{id}
 
 ---
 
+## 🧠 Recuperación de contraseña
+
+Se genera una nueva estructura:
+
+```plaintext
+mi-proyecto/
+├── backend/
+│   ├── src/
+│   │   ├── main/java/com/miempresa/miapp/
+│   │   │   ├── controller/
+│   │   │   │   └── AuthController.java         ← ENDPOINTS: forgot-password, reset-password
+│   │   │   ├── entity/
+│   │   │   │   └── PasswordResetToken.java     ← TOKEN con vencimiento
+│   │   │   ├── repository/
+│   │   │   │   ├── UsuarioRepository.java
+│   │   │   │   └── PasswordResetTokenRepository.java
+│   │   │   ├── service/
+│   │   │   │   └── EmailService.java           ← ENVÍA CORREO
+│   │   │   └── model/                          ← (opcional) DTOs
+│   │   └── resources/
+│   │       └── application.properties          ← CONFIG MAIL SMTP
+│   └── pom.xml
+│
+├── frontend/
+│   ├── src/
+│   │   ├── components/
+│   │   │   ├── ForgotPassword.jsx              ← FORM ENVÍO DE CORREO
+│   │   │   └── ResetPassword.jsx               ← FORM CAMBIO DE CONTRASEÑA
+│   │   ├── App.jsx
+│   │   ├── main.jsx
+│   │   └── index.css
+│   └── vite.config.js
+│
+├── docker-compose.yml                          ← (si usas contenedores)
+└── README.md
+
+```
+
+Para entender la lógica de funconamiento, se diagramó el siguiente flujo:
+
+```plaintext
+[ForgotPassword.jsx] (usuario escribe su correo)
+         │
+         ▼
+POST /api/auth/forgot-password ─────────► [AuthController.java]
+                                               │
+                                               ├── Busca al usuario
+                                               ├── Genera token temporal
+                                               ├── Guarda en BD (PasswordResetToken)
+                                               └── Llama a EmailService para enviar correo
+                                                           │
+                                                           ▼
+                                             [Token con URL enviado por Email]
+
+         ▼
+Usuario hace clic en el enlace: http://localhost:3000/reset-password?token=XYZ123
+
+[ResetPassword.jsx] (usuario pone nueva contraseña)
+         │
+         ▼
+POST /api/auth/reset-password ─────────► [AuthController.java]
+                                               │
+                                               ├── Valida token
+                                               ├── Cambia la contraseña
+                                               └── Elimina token
+
+```
 
 ## 💡 Posibilidades Futuras
 
 ### 🔐 Seguridad y Autenticación
 - Implementar autenticación con **JWT** o **OAuth2** (Google, GitHub, etc.)
-- Agregar recuperación de contraseña por correo
 - Validaciones backend con Spring Security
 
 ### 🎛️ Panel y Roles
