@@ -120,7 +120,7 @@ Puedes personalizar los puertos, credenciales y variables de entorno desde el ar
 ![Diagrama de clases](docs/image2.png)
 
 - Identificación de base de datos
-![Diagrama de clases](docs/image1.png)
+![Diagrama de clases](docs/image3.png)
 
 ---
 
