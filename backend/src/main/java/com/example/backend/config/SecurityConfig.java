@@ -30,7 +30,7 @@ public class SecurityConfig {
                 "/api/auth/register",     // <- aquí
                 "/api/auth/test",         // <- aquí
                 "/ping"                   // <- si usas ping para salud
-            ).permitAll()
+            ).permitAll() //En produccion hay que quitarlo
                 .anyRequest().authenticated() // 🔐 Todo lo demás requiere autenticación
             );
 
