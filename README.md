@@ -114,7 +114,8 @@ docker-compose up --build -d
 Puedes personalizar los puertos, credenciales y variables de entorno desde el archivo `.env`.
 
 - Prueba exitosa de Login
-![Diagrama de clases](Documents/image1.png)
+![Diagrama de clases](docs/image1.png)
+
 
 ---
 
