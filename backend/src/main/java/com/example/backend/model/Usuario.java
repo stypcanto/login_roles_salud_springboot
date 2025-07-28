@@ -10,13 +10,22 @@ public class Usuario {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(nullable = false, unique = true)
     private String correo;
+
+    @Column(nullable = false)
     private String contrasena;
 
-    // Getters y Setters
-    public Usuario() {
+    // Constructor vacío requerido por JPA
+    public Usuario() {}
+
+    // Constructor útil para crear instancias rápidamente (opcional)
+    public Usuario(String correo, String contrasena) {
+        this.correo = correo;
+        this.contrasena = contrasena;
     }
-    
+
+    // Getters y Setters
     public Long getId() {
         return id;
     }
@@ -33,11 +42,11 @@ public class Usuario {
         this.correo = correo;
     }
 
-   public String getcontrasena() {
-    return this.contrasena;
-}
+    public String getContrasena() {
+        return contrasena;
+    }
 
-   public void setContrasena(String contrasena) {
-    this.contrasena = contrasena;
+    public void setContrasena(String contrasena) {
+        this.contrasena = contrasena;
+    }
 }
-}   

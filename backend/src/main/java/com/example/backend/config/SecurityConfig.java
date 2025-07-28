@@ -21,18 +21,19 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-            .csrf(csrf -> csrf.ignoringRequestMatchers(
-                "/api/auth/forgot-password", 
-                "/api/auth/reset-password"
-            ))
+            .csrf(csrf -> csrf.disable()) // ❗️Desactiva CSRF para APIs REST
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers(
-                    "/api/auth/forgot-password",
-                    "/api/auth/reset-password"
-                ).permitAll()
-                .anyRequest().authenticated()
+                "/api/auth/login",
+                "/api/auth/forgot-password",
+                "/api/auth/reset-password",
+                "/api/auth/register",     // <- aquí
+                "/api/auth/test",         // <- aquí
+                "/ping"                   // <- si usas ping para salud
+            ).permitAll()
+                .anyRequest().authenticated() // 🔐 Todo lo demás requiere autenticación
             );
-        
+
         return http.build();
     }
 
@@ -41,7 +42,7 @@ public class SecurityConfig {
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowCredentials(true);
-        config.addAllowedOriginPattern("*"); // En producción, especifica tu dominio frontend
+        config.addAllowedOriginPattern("*"); // ⚠️ En producción, usar dominio exacto
         config.addAllowedHeader("*");
         config.addAllowedMethod("*");
         source.registerCorsConfiguration("/**", config);

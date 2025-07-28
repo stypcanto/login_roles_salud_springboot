@@ -1,21 +1,30 @@
-# 🚀 Plantilla Base Fullstack: React + Spring Boot + PostgreSQL + Docker
+# 🔐 Proyecto de Autenticación - Spring Boot + React + Docker
 
-Este repositorio proporciona una arquitectura moderna y modular para el desarrollo de aplicaciones web completas (**fullstack**) utilizando contenedores Docker.
+Este proyecto implementa un sistema de autenticación robusto utilizando Spring Boot para el backend, React para el frontend, PostgreSQL como base de datos, y Docker para la contenerización.
 
 ---
 
-## 🛠️ Tecnologías Utilizadas
+## 🎯 Objetivos Técnicos
 
-| Capa        | Tecnología                            | Descripción                                        |
-|-------------|----------------------------------------|----------------------------------------------------|
-| Frontend    | [React](https://reactjs.org)           | Biblioteca de JavaScript para construir interfaces |
-|             | [Vite](https://vitejs.dev)             | Bundler moderno para React                         |
-|             | [Tailwind CSS](https://tailwindcss.com)| Framework de utilidades CSS para diseño UI rápido  |
-| Backend     | [Spring Boot 3.x](https://spring.io/projects/spring-boot) | Framework Java basado en Spring (con Spring Web MVC y Spring Data JPA) |
-|             | [Java 17](https://openjdk.org/projects/jdk/17/) | Versión LTS utilizada                              |
-| Base de Datos | [PostgreSQL 15+](https://www.postgresql.org/) | Sistema de base de datos relacional                |
-| Contenedores| [Docker](https://www.docker.com/)      | Contenerización de servicios                       |
-| Orquestación| [Docker Compose](https://docs.docker.com/compose/) | Levanta toda la app con un solo comando           |
+- Implementar autenticación basada en correo y contraseña con cifrado.
+- Gestionar recuperación y reinicio de contraseña por token temporal.
+- Asegurar las rutas de API mediante Spring Security.
+- Exponer endpoints RESTful seguros y validados.
+- Integrar una arquitectura profesional y escalable.
+
+---
+
+
+
+## ⚙️ Tecnologías Usadas
+
+| Componente      | Tecnología                           |
+|----------------|---------------------------------------|
+| Backend         | Spring Boot 3.x (Java 17)            |
+| Seguridad       | Spring Security + JWT (en futuro)    |
+| Base de datos   | PostgreSQL 15+                        |
+| Frontend        | React + Vite + Tailwind CSS          |
+| Contenerización | Docker + Docker Compose              |
 
 ---
 
@@ -24,9 +33,19 @@ Este repositorio proporciona una arquitectura moderna y modular para el desarrol
 ```bash
 3.Proyecto_Login_Springboot/
 │
-├── backend/ # Proyecto Spring Boot (Java)
-│ ├── Dockerfile
-│ └── src/main/...
+├──backend/
+├── controller/
+│ └── AuthController.java
+├── service/
+│ ├── AuthService.java
+│ └── PasswordResetService.java
+├── repository/
+│ └── UsuarioRepository.java
+├── entity/
+│ └── Usuario.java
+├── config/
+│ └── SecurityConfig.java
+└── application.properties
 │
 ├── frontend/ # Proyecto React (Vite + Tailwind)
 │ ├── Dockerfile
@@ -207,48 +226,39 @@ POST /api/auth/reset-password ─────────► [AuthController.jav
 
 ```
 
-## 💡 Posibilidades Futuras
+## 📌 Ideas a Futuro
 
-### 🔐 Seguridad y Autenticación
-- Implementar autenticación con **JWT** o **OAuth2** (Google, GitHub, etc.)
-- Validaciones backend con Spring Security
+A continuación se detallan posibles mejoras y extensiones técnicas del proyecto:
 
-### 🎛️ Panel y Roles
-- Crear un **panel de administración** con control de acceso
-- Definir roles: administrador, coordinador, usuario, etc.
-- Permisos granulares para rutas y componentes
+### 🔐 1. Autenticación con JWT (JSON Web Tokens)
+- Reemplazar la autenticación basada en sesión por un sistema stateless con JWT.
+- Firmar y validar tokens en cada request para proteger rutas privadas.
+- Generar token de acceso y token de refresco (para renovar sesión sin volver a loguearse).
 
-### 📬 Notificaciones
-- Envío de **correos electrónicos** con Mailgun o SMTP
-- Notificaciones push o en tiempo real con WebSockets o Firebase
+### 🖥️ 2. Frontend con React (Login y Recuperación)
+- Crear un formulario de inicio de sesión totalmente funcional con manejo de errores.
+- Implementar vistas para registro, recuperación de contraseña y restablecimiento con token.
+- Gestionar estado de autenticación (tokens y expiración) desde el cliente.
 
-### 🧪 Testing y Calidad
-- Pruebas unitarias con **JUnit** (backend) y **Jest/React Testing Library** (frontend)
-- Pruebas de integración con Postman/Newman o Testcontainers
-- Análisis de código con SonarQube
+### 📧 3. Notificaciones por Email (Producción)
+- Integrar un proveedor de correo real como SendGrid, Mailgun o SMTP personalizado.
+- Enviar token de recuperación vía email seguro.
+- Incluir confirmaciones de registro y cambio de contraseña.
 
-### 🚀 Despliegue y CI/CD
-- Automatizar despliegue con **GitHub Actions**
-- Deploy en **Render**, **Railway**, **Vercel**, **Heroku** o **AWS EC2**
-- Versionamiento semántico (semver) + tags de release
+### 🛡️ 4. Roles y Permisos de Usuario
+- Crear entidades `Rol` y `Permiso`, y relacionarlas con el usuario.
+- Usar anotaciones como `@PreAuthorize("hasRole('ADMIN')")` para asegurar endpoints.
+- Permitir distintas vistas y acciones en función del rol (Admin, Coordinador, Usuario).
 
-### ⚙️ Optimización y Mantenimiento
-- Uso de **Docker multi-stage builds** para reducir peso
-- Caching en frontend y backend
-- Monitorización con Prometheus + Grafana o Sentry
+### 📊 5. Auditoría de Inicios de Sesión
+- Registrar eventos como login exitoso/fallido, cambios de contraseña, bloqueo por intentos fallidos.
+- Guardar IP, navegador y timestamp.
+- Visualizar el historial por usuario en un panel de administración.
 
-### 🔄 Integraciones Externas
-- API REST para terceros
-- Conexión con servicios como Twilio, Stripe o Google Calendar
-
-### 🗃️ Base de Datos y Persistencia
-- Migraciones con Flyway o Liquibase
-- Soporte para múltiples entornos: dev, staging, prod
-
-### 📱 Mobile & PWA
-- Convertir el frontend en **Progressive Web App**
-- Explorar desarrollo móvil con React Native compartiendo lógica
-
+### 📑 6. Documentación con Swagger / OpenAPI
+- Integrar `springdoc-openapi` para generar documentación interactiva.
+- Exponer rutas protegidas y públicas con descripciones claras.
+- Probar las APIs desde Swagger UI (`/swagger-ui.html`) sin necesidad de Postman.
 ---
 
 ## 👨‍💻 Autor
