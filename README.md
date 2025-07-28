@@ -113,9 +113,14 @@ docker-compose up --build -d
 ✅ Este entorno está preparado para desarrollo local y puede ser extendido fácilmente hacia entornos productivos.  
 Puedes personalizar los puertos, credenciales y variables de entorno desde el archivo `.env`.
 
-- Prueba exitosa de Login
+- Página de Login
 ![Diagrama de clases](docs/image1.png)
 
+- Prueba exitosa de Login
+![Diagrama de clases](docs/image2.png)
+
+- Identificación de base de datos
+![Diagrama de clases](docs/image1.png)
 
 ---
 
