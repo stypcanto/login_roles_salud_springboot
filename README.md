@@ -84,11 +84,37 @@ docker-compose up --build -d
 
 ---
 
+## 🧠 Arquitectura del Sistema
+
+```text
+               ┌──────────────────────────┐
+               │      Usuario Final       │
+               └──────────┬───────────────┘
+                          │
+                          ▼
+         ┌────────────────────────────────────┐
+         │        Frontend: React (Vite)      │
+         │         + Tailwind CSS             │
+         └────────────────┬───────────────────┘
+                          │
+                          ▼
+         ┌────────────────────────────────────┐
+         │       Backend: Spring Boot API     │
+         └────────────────┬───────────────────┘
+                          │
+                          ▼
+         ┌────────────────────────────────────┐
+         │    PostgreSQL - Base de Datos      │
+         └────────────────────────────────────┘
+
+```  
+✅ Cada servicio corre en su propio contenedor, orquestado por docker-compose.yml.
+
 ✅ Este entorno está preparado para desarrollo local y puede ser extendido fácilmente hacia entornos productivos.  
 Puedes personalizar los puertos, credenciales y variables de entorno desde el archivo `.env`.
 
 - Prueba exitosa de Login
-![Diagrama de clases](./Documents/image1.png)
+![Diagrama de clases](/Documents/image1.png)
 
 ---
 
