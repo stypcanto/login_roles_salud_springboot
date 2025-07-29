@@ -1,11 +1,13 @@
 import axios from 'axios';
 
-// Usa la variable de entorno VITE_API_URL definida en el Dockerfile o .env
+// api.js
 const api = axios.create({
-  baseURL: `${import.meta.env.VITE_API_URL}/api`,
-  headers: {
-    'Content-Type': 'application/json',
-  },
+  baseURL: import.meta.env.VITE_API_URL, // http://localhost/api
+  headers: { 'Content-Type': 'application/json' }
 });
+
+// Login.jsx
+// eslint-disable-next-line no-undef
+await api.post("/auth/login", { correo, contrasena: password });
 
 export default api;

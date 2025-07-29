@@ -58,6 +58,104 @@ Este proyecto implementa un sistema de autenticación robusto utilizando Spring 
 
 ---
 
+## 📡 Pruebas de la API con curl
+Estas pruebas permiten validar el correcto funcionamiento de los endpoints de autenticación en el backend.
+
+### 🔄 Verificación de salud
+```bash
+Copiar
+Editar
+curl http://localhost:8080/api/auth/ping
+
+```
+
+### 📥 Respuesta esperada:
+
+```nginx
+Copiar
+Editar
+API funcionando
+```
+
+### 🆕 Registro de nuevo usuario
+```bash
+Copiar
+Editar
+curl -X POST http://localhost:8080/api/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{"correo":"usuario@ejemplo.com", "contrasena":"123456"}'
+```
+### 📥 Respuesta esperada:
+
+```nginx
+Copiar
+Editar
+Usuario registrado correctamente.
+```
+
+### 🔐 Inicio de sesión
+bash
+Copiar
+Editar
+curl -X POST http://localhost:8080/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"correo":"usuario@ejemplo.com", "contrasena":"123456"}'
+### 📥 Respuesta esperada (credenciales válidas):
+
+```json
+Copiar
+Editar
+{"success":true,"message":"Inicio de sesión exitoso"}
+````
+
+### 📥 Respuesta esperada (credenciales inválidas):
+
+```json
+Copiar
+Editar
+{"success":false,"message":"Credenciales inválidas"}
+```
+### 🧠 Solicitud de recuperación de contraseña
+```bash
+Copiar
+Editar
+curl -X POST http://localhost:8080/api/auth/forgot-password \
+  -H "Content-Type: application/json" \
+  -d '{"correo":"usuario@ejemplo.com"}'
+```
+### 📥 Respuesta esperada (modo desarrollo):
+
+```java
+Copiar
+Editar
+Token generado correctamente (modo desarrollo): <UUID-TOKEN>
+📌 Guarda el token retornado para usarlo en el siguiente paso.
+```
+### 🔁 Restablecer contraseña con token
+```bash
+Copiar
+Editar
+curl -X POST http://localhost:8080/api/auth/reset-password \
+  -H "Content-Type: application/json" \
+  -d '{
+    "token": "75c60477-e184-43cd-80d2-2b78b1aec808",
+    "newPassword": "nuevaPasswordSegura123"
+}'
+```
+### 📥 Respuesta esperada (token válido):
+
+```css
+Copiar
+Editar
+Contraseña actualizada correctamente.
+```
+### 📥 Respuesta esperada (token inválido o expirado):
+
+```nginx
+Copiar
+Editar
+Token inválido o expirado.
+```
 ## ⚙️ Configuraciones .env (Frontend)
 
 Archivo: `frontend/.env`
@@ -225,6 +323,88 @@ POST /api/auth/reset-password ─────────► [AuthController.jav
                                                └── Elimina token
 
 ```
+
+# 🚀 Preparación para Producción con Docker
+
+Este documento resume las configuraciones clave implementadas para preparar el despliegue en producción de la aplicación con Docker.
+
+## ✅ Checklist de Producción
+
+| Tarea                                            | Estado |
+|--------------------------------------------------|--------|
+| Dockerfile frontend y backend optimizados        | ✅     |
+| Base de datos no expuesta públicamente           | ✅     |
+| Backend solo accesible internamente              | ✅     |
+| Frontend en puerto 80                            | ✅     |
+| `VITE_API_URL` apuntando al backend interno      | ✅     |
+| Nginx configurado correctamente                  | ✅     |
+| Variables `.env` listas                          | ✅     |
+| Logs visibles con `docker-compose logs -f`       | ✅     |
+
+---
+
+## 🔧 Cambios Técnicos Clave
+
+| Cambio                                                               | Razón                                                                 |
+|----------------------------------------------------------------------|------------------------------------------------------------------------|
+| `location /api/` en lugar de `location /api`                         | Evita errores de redirección con paths relativos                      |
+| `proxy_http_version 1.1;`                                            | Mejora soporte para conexiones modernas y Keep-Alive                  |
+| Nuevas cabeceras de seguridad (`Referrer-Policy`, `Permissions-Policy`) | Refuerzan protección frente a fugas de datos y uso de APIs del navegador |
+| Mejoras en configuración de `gzip_*`                                 | Compresión más eficiente y robusta                                    |
+
+---
+
+## 📁 Estructura Final Esperada
+
+- Frontend compilado y servido por **Nginx** en el puerto `80`
+- Backend accesible internamente como `http://backend:8080`
+- Las llamadas desde el frontend a la API son proxied mediante `/api`
+- Seguridad y compresión activadas en Nginx
+- Variables de entorno definidas al construir el contenedor del frontend (`VITE_API_URL`)
+- No hay puertos abiertos innecesariamente al exterior
+
+---
+
+## 🧪 Verificación Rápida
+
+- Accede al sitio en `http://localhost`
+- Verifica en consola que las llamadas a la API vayan a `/api/...`
+- Usa `docker-compose logs -f` para monitorear actividad en backend y frontend
+
+---
+
+> Si más adelante deseas habilitar HTTPS con Let's Encrypt (recomendado en producción pública), puedes agregar Nginx Proxy Manager o certbot en tu stack Docker.
+
+
+## 📦 Migración del Proyecto a Otra PC
+
+Para trasladar este proyecto a otro equipo manteniendo la base de datos y la configuración:
+
+1. **Respaldar la Base de Datos**
+   
+   Puedes elegir entre dos métodos:
+
+   - Usando `docker volume export`:
+     ```bash
+     docker volume export nombre_del_volumen > backup.tar
+     ```
+
+   - Usando `pg_dump`:
+     ```bash
+     docker exec -t NOMBRE_CONTENEDOR_DB pg_dump -U postgres -d mydb > backup.sql
+     ```
+
+2. **Copiar el Proyecto**
+
+   - Copia todo el proyecto (código, `.env`, `docker-compose.yml`) y el archivo de backup generado al nuevo equipo.
+
+3. **Levantar los Contenedores**
+
+   En la nueva máquina, ubica el proyecto en una carpeta y ejecuta:
+   ```bash
+   docker-compose up -d
+
+
 
 ## 📌 Ideas a Futuro
 
