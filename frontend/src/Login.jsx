@@ -1,55 +1,40 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import axios from "axios";
+import api from './config/api'; // Asegúrate de que la ruta esté bien
 
 const Login = () => {
-  // Estados locales para inputs y estado de error/carga
   const [correo, setCorreo] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
 
-  // Función que maneja el inicio de sesión
   const handleLogin = async (e) => {
     e.preventDefault();
-    setError(null); // Limpia errores anteriores
+    setError(null);
 
-    // Validación básica
     if (!correo || !password) {
       setError("Todos los campos son obligatorios");
       return;
     }
 
     try {
-      setIsLoading(true); // Muestra el estado de carga
+      setIsLoading(true);
 
-      // Enviar datos al backend usando axios
-      const res = await axios.post(
-        `${import.meta.env.VITE_API_URL}/api/auth/login`,
-        { correo, contrasena: password }, // Nota: el backend espera 'contrasena'
-        { headers: { "Content-Type": "application/json" } }
-      );
+      const res = await api.post("/auth/login", {
+        correo,
+        contrasena: password,
+      });
 
-      /**
-       * Esperamos que el backend retorne algo así:
-       * {
-       *   success: true,
-       *   message: "Inicio de sesión exitoso"
-       * }
-       */
       const { success, message } = res.data;
 
       if (success) {
-        // Si el login fue exitoso, redirige al dashboard
         navigate("/dashboard");
       } else {
-        // Si 'success' es false, muestra el mensaje del backend
         setError(message || "Credenciales incorrectas");
       }
     } catch (err) {
       console.error("Error de conexión:", err);
-      // Si hay respuesta del backend, muestra el mensaje
       if (err.response?.data?.message) {
         setError(err.response.data.message);
       } else {

@@ -7,9 +7,9 @@ services:
       context: ./frontend
       dockerfile: Dockerfile.prod
       args:
-        VITE_API_URL: ${VITE_API_URL}    # Se inyecta en tiempo de build
+        VITE_API_URL: http://backend:8080/api
     environment:
-      VITE_API_URL: ${VITE_API_URL}      # También en tiempo de ejecución
+      VITE_API_URL: http://backend:8080/api
     ports:
       - "80:80"
     networks:
@@ -22,14 +22,13 @@ services:
   backend:
     build:
       context: ./backend
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.prod
     environment:
-      SPRING_PROFILES_ACTIVE: prod
-      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/mydb
+      SPRING_PROFILES_ACTIVE: ${ENVIRONMENT}
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/${POSTGRES_DB}
       SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER}
       SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
-      SPRING_JPA_HIBERNATE_DDL_AUTO: update
-      # ALLOWED_ORIGINS: "http://localhost"  # Solo si lo usas desde @Value en WebConfig.java
+      SPRING_JPA_HIBERNATE_DDL_AUTO: ${SPRING_JPA_HIBERNATE_DDL_AUTO}
     ports:
       - "8080:8080"
     networks:
@@ -49,7 +48,7 @@ services:
     volumes:
       - pgdata:/var/lib/postgresql/data
     ports:
-      - "5432:5432"  # Solo para desarrollo local
+      - "5432:5432"  # 👈 Agrega esto para acceder desde el host
     networks:
       - app-network
     restart: unless-stopped

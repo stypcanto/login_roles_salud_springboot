@@ -8,6 +8,7 @@ function Registro() {
   const [contrasena, setContrasena] = useState("");
   const [mensaje, setMensaje] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const API_URL = import.meta.env.VITE_API_URL;
 
   const handleRegistro = async (e) => {
     e.preventDefault();
@@ -16,10 +17,7 @@ function Registro() {
 
     try {
       // Si usas URL absoluta, puede ser:
-       await axios.post("http://localhost:8080/api/auth/register", {
-        correo,
-        contrasena,
-      });
+       await axios.post(`${API_URL}/auth/register`, { correo, contrasena });
 
       // ✅ Registro exitoso
       setMensaje("✅ Usuario registrado correctamente.");

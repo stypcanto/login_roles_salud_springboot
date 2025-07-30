@@ -1,9 +1,9 @@
 package com.example.backend.service;
 
 import com.example.backend.entity.PasswordResetToken;
-import com.example.backend.model.Usuario;
+import com.example.backend.entity.User;
 import com.example.backend.repository.PasswordResetTokenRepository;
-import com.example.backend.repository.UsuarioRepository;
+import com.example.backend.repository.UserRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -19,79 +19,67 @@ public class PasswordResetService {
 
     private static final Logger logger = LoggerFactory.getLogger(PasswordResetService.class);
 
-    private final UsuarioRepository usuarioRepository;
+    private final UserRepository userRepository;
     private final PasswordResetTokenRepository tokenRepository;
     private final PasswordEncoder passwordEncoder;
 
-    public PasswordResetService(UsuarioRepository usuarioRepository,
+    public PasswordResetService(UserRepository userRepository,
                                 PasswordResetTokenRepository tokenRepository,
                                 PasswordEncoder passwordEncoder) {
-        this.usuarioRepository = usuarioRepository;
+        this.userRepository = userRepository;
         this.tokenRepository = tokenRepository;
         this.passwordEncoder = passwordEncoder;
     }
 
     @Transactional
     public String sendPasswordResetToken(String correo) {
-        logger.info("📩 Solicitud de recuperación de contraseña para: {}", correo);
+        Optional<User> userOptional = userRepository.findByCorreo(correo);
 
-        Usuario usuario = usuarioRepository.findByCorreo(correo)
-                .orElseThrow(() -> {
-                    logger.warn("❌ Usuario no encontrado: {}", correo);
-                    return new RuntimeException("Usuario no encontrado");
-                });
+        if (userOptional.isEmpty()) {
+            logger.warn("❌ Usuario no encontrado: {}", correo);
+            throw new RuntimeException("Usuario no encontrado");
+        }
 
-        // Elimina tokens anteriores
-        tokenRepository.deleteByUsuario(usuario);
-        logger.info("🧹 Tokens anteriores eliminados para el usuario: {}", correo);
+        User user = userOptional.get();
 
-        // Crea nuevo token
-        PasswordResetToken token = new PasswordResetToken();
-        token.setToken(UUID.randomUUID().toString());
-        token.setUsuario(usuario);
-        token.setExpiration(LocalDateTime.now().plusHours(1));
+        tokenRepository.deleteByUser(user);
+        logger.info("🧹 Tokens anteriores eliminados para: {}", correo);
+
+        String tokenString = UUID.randomUUID().toString();
+        PasswordResetToken token = new PasswordResetToken(tokenString, user);
         tokenRepository.save(token);
 
-        logger.info("🔐 Nuevo token generado para {}: {}", correo, token.getToken());
+        logger.info("🔐 Nuevo token generado para {}: {}", correo, tokenString);
 
-        // En producción se enviaría por correo
-        return "Token generado correctamente (modo desarrollo): " + token.getToken();
+        return "Token generado correctamente (modo desarrollo): " + tokenString;
     }
 
     @Transactional
     public String resetPassword(String token, String newPassword) {
-        logger.info("🔁 Intentando resetear contraseña con token: {}", token);
+        logger.info("🔁 Procesando reseteo de contraseña para token: {}", token);
 
         Optional<PasswordResetToken> tokenOptional = tokenRepository.findByToken(token);
 
         if (tokenOptional.isEmpty()) {
-            logger.warn("⛔ Token inválido o expirado: {}", token);
-            return "Token inválido o expirado.";
+            logger.warn("⛔ Token inválido: {}", token);
+            return "Token inválido o no encontrado.";
         }
 
         PasswordResetToken resetToken = tokenOptional.get();
 
-        // Verifica expiración
         if (resetToken.getExpiration().isBefore(LocalDateTime.now())) {
             logger.warn("⏰ Token expirado: {}", token);
+            tokenRepository.delete(resetToken);
             return "Token expirado.";
         }
 
-        Usuario usuario = resetToken.getUsuario();
+        User user = resetToken.getUser();
 
-        // Busca usuario de nuevo por correo
-        Usuario existente = usuarioRepository.findByCorreo(usuario.getCorreo())
-                .orElseThrow(() -> {
-                    logger.error("❌ Usuario no encontrado al usar token");
-                    return new RuntimeException("Usuario no encontrado");
-                });
+        user.setContrasena(passwordEncoder.encode(newPassword));
+        userRepository.save(user);
+        logger.info("✅ Contraseña actualizada para usuario: {}", user.getCorreo());
 
-        existente.setContrasena(passwordEncoder.encode(newPassword));
-        usuarioRepository.save(existente);
-
-        tokenRepository.delete(resetToken); // Limpia token usado
-
-        logger.info("✅ Contraseña actualizada para usuario: {}", existente.getCorreo());
+        tokenRepository.delete(resetToken);
 
         return "Contraseña actualizada correctamente.";
     }

@@ -1,0 +1,14 @@
+# Carpetas innecesarias
+node_modules
+dist
+
+# Archivos de configuración locales
+.dockerignore
+Dockerfile
+Dockerfile.prod
+.env
+.env.*
+.vscode
+.git
+.gitignore
+README.md

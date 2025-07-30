@@ -1,5 +1,12 @@
-{"properties": [{
-  "name": "\nserver.por",
-  "type": "java.lang.String",
-  "description": "A description for '\nserver.por'"
-}]}
+{"properties": [
+  {
+    "name": "\nserver.por",
+    "type": "java.lang.String",
+    "description": "A description for '\nserver.por'"
+  },
+  {
+    "name": "spring.web.cors.allowed-origins",
+    "type": "java.lang.String",
+    "description": "A description for 'spring.web.cors.allowed-origins'"
+  }
+]}

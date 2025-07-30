@@ -1,79 +1,48 @@
 package com.example.backend.service;
 
-import com.example.backend.model.Usuario;
-import com.example.backend.repository.UsuarioRepository;
+import com.example.backend.entity.User;
+import com.example.backend.repository.UserRepository;
+import com.example.backend.security.JwtUtil;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-import java.util.Optional;
-
-@Service
+@Service("authServiceService")
 public class AuthService {
 
-    private static final Logger logger = LoggerFactory.getLogger(AuthService.class);
-
-    private final UsuarioRepository usuarioRepository;
+    private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final JwtUtil jwtUtil;
 
-    public AuthService(UsuarioRepository usuarioRepository,
-                       PasswordEncoder passwordEncoder) {
-        this.usuarioRepository = usuarioRepository;
+    public AuthService(UserRepository userRepository,
+                       PasswordEncoder passwordEncoder,
+                       JwtUtil jwtUtil) {
+        this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
+        this.jwtUtil = jwtUtil;
     }
 
-    /**
-     * Autentica a un usuario validando su correo y contraseña.
-     * 
-     * @param correo     Correo electrónico del usuario.
-     * @param contrasena Contraseña sin cifrar ingresada por el usuario.
-     * @return true si las credenciales son válidas, false en caso contrario.
-     */
-    public boolean login(String correo, String contrasena) {
-        logger.info("🟡 Intentando autenticar usuario con correo: {}", correo);
+    public String authenticate(String correo, String contrasena) {
+        User user = userRepository.findByCorreo(correo)
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
 
-        Optional<Usuario> usuarioOpt = usuarioRepository.findByCorreo(correo);
-
-        if (usuarioOpt.isEmpty()) {
-            logger.warn("⚠️ Usuario no encontrado con correo: {}", correo);
-            return false;
+        if (!passwordEncoder.matches(contrasena, user.getContrasena())) {
+            throw new RuntimeException("Contraseña incorrecta");
         }
 
-        Usuario usuario = usuarioOpt.get();
-
-        boolean contrasenaValida = passwordEncoder.matches(contrasena, usuario.getContrasena());
-
-        if (contrasenaValida) {
-            logger.info("✅ Autenticación exitosa para: {}", correo);
-            return true;
-        } else {
-            logger.warn("❌ Contraseña incorrecta para: {}", correo);
-            return false;
-        }
+        return jwtUtil.generateToken(user.getCorreo());
     }
 
-    /**
-     * Registra un nuevo usuario si el correo no está ya registrado.
-     * 
-     * @param correo     Correo del nuevo usuario.
-     * @param contrasena Contraseña sin cifrar.
-     * @return true si el usuario fue registrado, false si ya existía.
-     */
+    // 👇 Método que te faltaba
     public boolean register(String correo, String contrasena) {
-        logger.info("📝 Intentando registrar nuevo usuario: {}", correo);
-
-        if (usuarioRepository.existsByCorreo(correo)) {
-            logger.warn("🚫 Ya existe un usuario registrado con el correo: {}", correo);
-            return false;
+        if (userRepository.findByCorreo(correo).isPresent()) {
+            return false; // Usuario ya existe
         }
 
-        Usuario nuevoUsuario = new Usuario();
+        User nuevoUsuario = new User();
         nuevoUsuario.setCorreo(correo);
         nuevoUsuario.setContrasena(passwordEncoder.encode(contrasena));
 
-        usuarioRepository.save(nuevoUsuario);
-        logger.info("✅ Usuario registrado exitosamente: {}", correo);
+        userRepository.save(nuevoUsuario);
         return true;
     }
 }
