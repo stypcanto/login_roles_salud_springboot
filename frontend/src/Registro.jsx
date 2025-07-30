@@ -2,51 +2,46 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 
-// Componente funcional para registrar nuevos usuarios
 function Registro() {
-  // Hook para redireccionar al login después del registro exitoso
   const navigate = useNavigate();
+  const [correo, setCorreo] = useState("");
+  const [contrasena, setContrasena] = useState("");
+  const [mensaje, setMensaje] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
-  // Estados locales para los campos del formulario y control de estado
-  const [correo, setCorreo] = useState("");               // Correo ingresado
-  const [contrasena, setContrasena] = useState("");       // Contraseña ingresada
-  const [mensaje, setMensaje] = useState("");             // Mensaje informativo (éxito o error)
-  const [isLoading, setIsLoading] = useState(false);      // Indica si se está procesando el registro
-
-  // Función que maneja el envío del formulario
   const handleRegistro = async (e) => {
-    e.preventDefault();         // Previene el recargado del formulario
-    setIsLoading(true);         // Inicia la animación de carga
+    e.preventDefault();
+    setIsLoading(true);
+    setMensaje("");
 
     try {
-      // Enviamos los datos al backend (POST /api/auth/register)
-      await axios.post("/api/auth/register", {
+      // Si usas URL absoluta, puede ser:
+       await axios.post("http://localhost:8080/api/auth/register", {
         correo,
         contrasena,
       });
 
-      // Si no lanza error, consideramos éxito
+      // ✅ Registro exitoso
       setMensaje("✅ Usuario registrado correctamente.");
-      
-      // Redirigimos al login tras un breve retardo
+
+      // Redirige al login luego de 2 segundos
       setTimeout(() => {
-        navigate("/");  // Ruta del login
+        navigate("/");
       }, 2000);
     } catch (error) {
-      // Manejo de errores del backend o red
+      // ❌ Muestra mensaje del backend o error genérico
       const errorMessage =
-        error.response?.data?.message ||           // Si backend envía { message: '...' }
+        error.response?.data?.message ||
         (typeof error.response?.data === "string"
           ? error.response.data
-          : "Error al conectar con el servidor");  // Otros tipos de errores
+          : "Error al conectar con el servidor");
 
       setMensaje(`❌ ${errorMessage}`);
     } finally {
-      setIsLoading(false);  // Terminamos animación de carga
+      setIsLoading(false);
     }
   };
 
-  // Render del formulario de registro
   return (
     <div className="flex flex-col items-center justify-center min-h-screen px-4 bg-gray-100">
       <form
@@ -55,9 +50,7 @@ function Registro() {
       >
         <h2 className="text-2xl font-bold text-center">Crear Cuenta</h2>
 
-        {/* Campos de entrada del formulario */}
         <div className="space-y-2">
-          {/* Campo correo */}
           <input
             type="email"
             placeholder="Correo electrónico"
@@ -67,7 +60,6 @@ function Registro() {
             required
           />
 
-          {/* Campo contraseña */}
           <input
             type="password"
             placeholder="Contraseña"
@@ -79,20 +71,16 @@ function Registro() {
           />
         </div>
 
-        {/* Botón para registrar */}
         <button
           type="submit"
           disabled={isLoading}
           className={`w-full p-2 text-white rounded transition-colors ${
-            isLoading
-              ? "bg-blue-400 cursor-not-allowed"
-              : "bg-blue-600 hover:bg-blue-700"
+            isLoading ? "bg-blue-400 cursor-not-allowed" : "bg-blue-600 hover:bg-blue-700"
           }`}
         >
           {isLoading ? "Registrando..." : "Registrarse"}
         </button>
 
-        {/* Mensaje de éxito o error */}
         {mensaje && (
           <p
             className={`mt-2 text-sm text-center ${
