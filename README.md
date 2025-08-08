@@ -311,7 +311,6 @@ INSERT INTO usuario_roles (usuario_id, rol_id) VALUES
 
 ## 🧠 Arquitectura del Sistema
 
-## 🧠 Arquitectura del Sistema
 
                ┌──────────────────────────┐
                │      Usuario Final       │
