@@ -234,7 +234,7 @@ Credenciales inválidas%
 ### Registro del usuario
 curl -X POST http://localhost:8080/auth/register \
   -H "Content-Type: application/json" \
-  -d '{"correo":"styp611@outlook.com", "contrasena":"123456"}'
+   -d '{"correo":"styp611@outlook.com", "contrasena":"123456"}'
 
 #### Salida esperada:
 Usuario registrado correctamente.
@@ -290,7 +290,7 @@ INSERT INTO usuario_roles (usuario_id, rol_id) VALUES
 
 | Servicio         | URL/Descripción                             |
 |------------------|---------------------------------------------|
-| 🖥️ **Frontend**   | [http://localhost:3000](http://localhost:3000) |
+| 🖥️ **Frontend**   | [http://localhost:5173](http://localhost:5173) |
 | 🧩 **Backend**    | [http://localhost:8080](http://localhost:8080) (API REST) |
 | 🛢️ **PostgreSQL** | Expuesto internamente por Docker (puerto `5432`) |
 
