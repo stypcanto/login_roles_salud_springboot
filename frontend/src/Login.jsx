@@ -21,17 +21,15 @@ const Login = () => {
     try {
       setIsLoading(true);
 
-      const res = await api.post("/auth/login", {
-        username: correo,
-        password: password,
-      });
+      const res = await api.post("/auth/login", { correo, contrasena: password });
 
-      const { success, message } = res.data;
+      const { token } = res.data;
 
-      if (success) {
+      if (token) {
+        localStorage.setItem("token", token);
         navigate("/dashboard");
       } else {
-        setError(message || "Credenciales incorrectas");
+        setError("Credenciales incorrectas");
       }
     } catch (err) {
       console.error("Error de conexión:", err);
@@ -41,7 +39,7 @@ const Login = () => {
         setError("Error al conectar con el servidor");
       }
     } finally {
-      setIsLoading(false); // Quita el estado de carga
+      setIsLoading(false);
     }
   };
 

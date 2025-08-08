@@ -28,7 +28,6 @@ public class SecurityConfig {
     private final UserDetailsService userDetailsService;
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
-  
     public SecurityConfig(
             @Qualifier("customUserDetailsService") UserDetailsService userDetailsService,
             JwtAuthenticationFilter jwtAuthenticationFilter) {
@@ -75,7 +74,10 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOrigins(List.of("*")); // Permitir todos para pruebas
+        // Permitir solicitudes desde el frontend (ajusta según tu dominio)
+        config.setAllowedOrigins(List.of("http://localhost:5173"));
+        // config.setAllowedOrigins(List.of("https://miapp.com"));
+        // Con este link pasa producción
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("*")); // Permitir cualquier cabecera
         config.setAllowCredentials(true);
