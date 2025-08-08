@@ -240,9 +240,10 @@ curl -X POST http://localhost:8080/auth/register \
 Usuario registrado correctamente.
 
 ### Login con usuario registrado (éxito)
-curl -X POST http://localhost:8080/auth/login \
+curl -X POST http://localhost:8080/auth/login\
   -H "Content-Type: application/json" \
   -d '{"correo":"styp611@outlook.com", "contrasena":"123456"}'
+
 
 ### Salida esperada:
  {"token":"<jwt_token_aqui>"}
