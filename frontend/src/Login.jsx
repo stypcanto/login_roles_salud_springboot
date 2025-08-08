@@ -22,8 +22,8 @@ const Login = () => {
       setIsLoading(true);
 
       const res = await api.post("/auth/login", {
-        correo,
-        contrasena: password,
+        username: correo,
+        password: password,
       });
 
       const { success, message } = res.data;
@@ -52,46 +52,45 @@ const Login = () => {
           Login CENATE
         </h1>
 
-        {error && (
-          <p className="mb-4 text-center text-red-500">{error}</p>
-        )}
+        { error && (
+          <p className="mb-4 text-center text-red-500">{ error }</p>
+        ) }
 
-        <form onSubmit={handleLogin}>
-          {/* Campo de correo */}
+        <form onSubmit={ handleLogin }>
+          {/* Campo de correo */ }
           <div className="mb-4">
             <input
               type="email"
               placeholder="Correo electrónico"
-              value={correo}
-              onChange={(e) => setCorreo(e.target.value)}
+              value={ correo }
+              onChange={ (e) => setCorreo(e.target.value) }
               className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
 
-          {/* Campo de contraseña */}
+          {/* Campo de contraseña */ }
           <div className="mb-6">
             <input
               type="password"
               placeholder="Contraseña"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              value={ password }
+              onChange={ (e) => setPassword(e.target.value) }
               className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
 
-          {/* Botón de enviar */}
+          {/* Botón de enviar */ }
           <button
             type="submit"
-            disabled={isLoading}
-            className={`w-full py-3 px-6 bg-[#2e63a6] text-white text-sm font-semibold rounded-lg shadow-md hover:scale-105 focus:outline-none focus:ring-2 ${
-              isLoading ? "opacity-50 cursor-not-allowed" : "hover:bg-[#2e63a6]"
-            }`}
+            disabled={ isLoading }
+            className={ `w-full py-3 px-6 bg-[#2e63a6] text-white text-sm font-semibold rounded-lg shadow-md hover:scale-105 focus:outline-none focus:ring-2 ${isLoading ? "opacity-50 cursor-not-allowed" : "hover:bg-[#2e63a6]"
+              }` }
           >
-            {isLoading ? "Cargando..." : "Iniciar sesión"}
+            { isLoading ? "Cargando..." : "Iniciar sesión" }
           </button>
         </form>
 
-        {/* Enlace para recuperar contraseña */}
+        {/* Enlace para recuperar contraseña */ }
         <div className="flex items-center justify-center mt-4">
           <Link
             to="/forgot-password"
@@ -101,23 +100,23 @@ const Login = () => {
           </Link>
         </div>
 
-        {/* Enlace para registrarse */}
+        {/* Enlace para registrarse */ }
         <div className="mt-6 text-center">
           <p className="text-sm text-gray-700">
-            ¿No tienes una cuenta?{" "}
+            ¿No tienes una cuenta?{ " " }
             <span
               className="text-[#2e63a6] cursor-pointer font-semibold"
-              onClick={() => navigate("/registro")}
+              onClick={ () => navigate("/registro") }
             >
               Únete gratis
             </span>
           </p>
         </div>
 
-        {/* Botón alternativo de registro */}
+        {/* Botón alternativo de registro */ }
         <button
           type="button"
-          onClick={() => navigate("/registro")}
+          onClick={ () => navigate("/registro") }
           className="w-full p-3 mt-4 text-white bg-green-700 rounded-lg hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
         >
           Crear una cuenta

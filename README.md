@@ -28,6 +28,41 @@ Este proyecto implementa un sistema de autenticación robusto utilizando Spring 
 
 ---
 
+Este backend está construido con Spring Boot y expone una API REST para autenticación, manejo de usuarios y un endpoint de salud para monitoreo. La aplicación está configurada para ejecutarse en Docker y conectarse a una base de datos PostgreSQL.
+
+## Estructura de la API
+
+| Endpoint               | Método | Descripción                                                   | Respuesta Ejemplo             |
+|------------------------|--------|---------------------------------------------------------------|------------------------------|
+| `/health`              | GET    | Endpoint de healthcheck, indica si el backend está activo.    | `{ "status": "ok" }`          |
+| `/auth/ping`           | GET    | Endpoint simple para probar que la autenticación está disponible. | `Pong`                       |
+| `/auth/login`          | POST   | Realiza login con correo y contraseña, devuelve token JWT.     | `{ "token": "eyJhbGciOi..." }` |
+| `/auth/register`       | POST   | Registra un nuevo usuario.                                     | `"Usuario registrado correctamente."` |
+| `/auth/forgot-password`| POST   | Solicita token para restablecer contraseña.                    | Mensaje de confirmación        |
+| `/auth/reset-password` | POST   | Restablece contraseña usando token.    
+
+- Este backend está construido con Spring Boot y expone una API REST para autenticación, manejo de usuarios y un endpoint de salud para monitoreo. La aplicación está configurada para ejecutarse en Docker y conectarse a una base de datos PostgreSQL.
+
+
+
+- La seguridad está configurada con JWT y CORS habilitado para cualquier origen (para desarrollo).
+
+
+## Comandos útiles
+- Para probar los endpoints desde el host (con backend en Docker):
+
+```bash
+curl http://localhost:8080/health
+curl http://localhost:8080/auth/ping
+
+```
+
+- Para probar desde el front:
+
+```bash
+curl http://localhost:8080/auth/ping
+```
+
 ## 🧱 Estructura del Proyecto
 
 ```bash
@@ -65,7 +100,7 @@ Estas pruebas permiten validar el correcto funcionamiento de los endpoints de au
 ```bash
 Copiar
 Editar
-curl http://localhost:8080/api/auth/ping
+curl http://localhost:8080/auth/ping
 
 ```
 
@@ -81,7 +116,7 @@ API funcionando
 ```bash
 Copiar
 Editar
-curl -X POST http://localhost:8080/api/auth/register \
+curl -X POST http://localhost:8080/auth/register \
   -H "Content-Type: application/json" \
   -d '{"correo":"usuario@ejemplo.com", "contrasena":"123456"}'
 ```
@@ -97,7 +132,7 @@ Usuario registrado correctamente.
 bash
 Copiar
 Editar
-curl -X POST http://localhost:8080/api/auth/login \
+curl -X POST http://localhost:8080/auth/login \
   -H "Content-Type: application/json" \
   -d '{"correo":"usuario@ejemplo.com", "contrasena":"123456"}'
 ### 📥 Respuesta esperada (credenciales válidas):
@@ -178,6 +213,75 @@ docker-compose down
 # Construir e iniciar todo el entorno
 docker-compose up --build -d
 
+```
+
+Este documento describe las instrucciones para insertar usuarios, roles y asignar roles a los usuarios en la base de datos.
+
+# Documentación de Inserción de Usuarios y Roles
+
+Este documento describe las instrucciones para insertar usuarios, roles y asignar roles a los usuarios en la base de datos.
+
+
+---
+## Probando la inyecion de datos desde el Backend:
+
+# Intento de login con usuario no registrado (fallará)
+curl -X POST http://localhost:8080/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"correo":"styp611@outlook.com", "contrasena":"123456"}'
+
+# Salida esperada: 
+Credenciales inválidas%  
+
+# Registro del usuario
+curl -X POST http://localhost:8080/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{"correo":"styp611@outlook.com", "contrasena":"123456"}'
+
+# Salida esperada:
+Usuario registrado correctamente.
+
+# Login con usuario registrado (éxito)
+curl -X POST http://localhost:8080/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"correo":"styp611@outlook.com", "contrasena":"123456"}'
+
+# Salida esperada:
+ {"token":"<jwt_token_aqui>"}
+
+
+
+Por comando Postgress
+
+## 1. Insertar Usuarios en la Tabla `usuarios`
+
+Asumiendo que la columna `id` es de tipo serial/autoincremental, se pueden insertar usuarios con sus correos y contraseñas (hash bcrypt) de la siguiente manera:
+
+```sql
+INSERT INTO usuarios (correo, contrasena) VALUES
+('juan.perez@example.com', '$2a$10$7Q8rG/7XqjRtMGHU6xzJj.1QGlJqN/OX4.oyZZhuXcdh1LQEjRoxK'), -- password: user123
+('maria.lopez@example.com', '$2a$10$WvF4Wpq7VgDmc3uMaP69COkD6HLb0MG5QKdPoOENYtJpiqMylNp9O'), -- password: user456
+('admin@example.com', '$2a$10$k7a7eqzFGqV03lNz2BWY9eKxX1Om0Rmx0V.kO9bS/jjDfV8ewcQiS');  -- password: admin789
+```
+
+## 2. Insertar Roles en la Tabla  `roles`
+Si aún no existen, insertar los roles necesarios:
+
+```sql
+INSERT INTO roles (id, nombre) VALUES
+(1, 'ROLE_USER'),
+(2, 'ROLE_ADMIN');
+
+```
+
+## 3. Asignar Roles a Usuarios en la Tabla `usuario_roles`
+Asumiendo que los IDs generados para los usuarios son 1, 2 y 3 respectivamente:
+
+```sql
+INSERT INTO usuario_roles (usuario_id, rol_id) VALUES
+(1, 1),  -- Juan Pérez: ROLE_USER
+(2, 1),  -- María López: ROLE_USER
+(3, 2);  -- Admin: ROLE_ADMIN
 ```
 
 ## 📦 Servicios Disponibles

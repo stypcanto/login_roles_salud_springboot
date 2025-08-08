@@ -4,12 +4,16 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.example.backend.security.JwtUtil;
 import com.example.backend.service.AuthService;
 import com.example.backend.service.PasswordResetService;
 
@@ -25,10 +29,17 @@ public class AuthController {
 
     private final AuthService authService;
     private final PasswordResetService passwordResetService;
+    private final AuthenticationManager authenticationManager;
+    private final JwtUtil jwtUtil;
 
-    public AuthController(AuthService authService, PasswordResetService passwordResetService) {
+    public AuthController(AuthService authService,
+            PasswordResetService passwordResetService,
+            AuthenticationManager authenticationManager,
+            JwtUtil jwtUtil) {
         this.authService = authService;
         this.passwordResetService = passwordResetService;
+        this.authenticationManager = authenticationManager;
+        this.jwtUtil = jwtUtil;
     }
 
     @GetMapping("/ping")
@@ -37,17 +48,25 @@ public class AuthController {
         return ResponseEntity.ok("Pong");
     }
 
-  
-
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest request) {
+        logger.info("Intento de login con correo: {}", request.correo());
         try {
-            String token = authService.authenticate(request.correo(), request.contrasena());
+            // Aquí autenticas con Spring Security:
+            authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(request.correo(), request.contrasena()));
+
+            // Si no lanza excepción, generas el token:
+            String token = jwtUtil.generateToken(request.correo());
             logger.info("✅ Login exitoso para: {}", request.correo());
             return ResponseEntity.ok(new JwtResponse(token));
-        } catch (RuntimeException e) {
-            logger.warn("❌ Fallo en login para {}: {}", request.correo(), e.getMessage());
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(e.getMessage());
+
+        } catch (AuthenticationException e) {
+            logger.warn("❌ Fallo en login para {}: Credenciales inválidas", request.correo());
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Credenciales inválidas");
+        } catch (Exception e) {
+            logger.error("❌ Error inesperado en login para {}: {}", request.correo(), e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error en el servidor");
         }
     }
 

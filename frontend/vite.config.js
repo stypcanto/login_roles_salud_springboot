@@ -13,11 +13,13 @@ export default defineConfig(({ mode }) => {
     },
     server: {
       proxy: {
-        '/api': {
+        '/auth': {
           target: env.VITE_API_URL || 'http://localhost:8080',
           changeOrigin: true,
         },
+        // agregar otros endpoints que necesites proxear
       },
     },
+
   }
 })
