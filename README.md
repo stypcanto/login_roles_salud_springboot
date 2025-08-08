@@ -67,21 +67,19 @@ curl http://localhost:8080/auth/ping
 
 ```bash
 3.Proyecto_Login_Springboot/
-│
-├──backend/
-├── controller/
-│ └── AuthController.java
-├── service/
-│ ├── AuthService.java
-│ └── PasswordResetService.java
-├── repository/
-│ └── UsuarioRepository.java
-├── entity/
-│ └── Usuario.java
-├── config/
-│ └── SecurityConfig.java
-└── application.properties
-│
+├── backend/
+│   ├── controller/
+│   │   └── AuthController.java
+│   ├── service/
+│   │   ├── AuthService.java
+│   │   └── PasswordResetService.java
+│   ├── repository/
+│   │   └── UsuarioRepository.java
+│   ├── entity/
+│   │   └── Usuario.java
+│   ├── config/
+│   │   └── SecurityConfig.java
+│   └── application.properties
 ├── frontend/ # Proyecto React (Vite + Tailwind)
 │ ├── Dockerfile
 │ └── src/
@@ -284,6 +282,10 @@ INSERT INTO usuario_roles (usuario_id, rol_id) VALUES
 (3, 2);  -- Admin: ROLE_ADMIN
 ```
 
+
+
+
+
 ## 📦 Servicios Disponibles
 
 | Servicio         | URL/Descripción                             |
@@ -296,39 +298,59 @@ INSERT INTO usuario_roles (usuario_id, rol_id) VALUES
 
 ## 🧩 Spring Boot: Componentes Incluidos
 
-| Módulo                 | Descripción                                         |
-|------------------------|-----------------------------------------------------|
-| **Spring Web**         | Define los controladores REST (API REST)            |
-| **Spring Data JPA**    | Abstracción de persistencia con PostgreSQL          |
-| **Spring Boot Devtools** | Soporte para recarga en caliente (Hot Reload)      |
-| **PostgreSQL Driver**  | Driver JDBC para conectarse a la base de datos      |
+| Módulo                 | Descripción                                                       |
+|------------------------|-------------------------------------------------------------------|
+| **Spring Web**         | Define controladores REST y manejo de peticiones HTTP             |
+| **Spring Data JPA**    | Abstracción para acceso y manipulación de datos con PostgreSQL    |
+| **Spring Boot Devtools** | Facilita recarga automática durante desarrollo (Hot Reload)      |
+| **PostgreSQL Driver**  | Driver JDBC para conexión con base de datos PostgreSQL            |
+| **Spring Security**    | Gestión de autenticación y autorización, incluyendo JWT           |
+| **Spring Boot Actuator** | Monitoreo y métricas del backend (opcional, si lo usas)          |
 
 ---
 
 ## 🧠 Arquitectura del Sistema
 
-```text
+## 🧠 Arquitectura del Sistema
+
                ┌──────────────────────────┐
                │      Usuario Final       │
                └──────────┬───────────────┘
-                          │
+                          │ Navegador (localhost)
                           ▼
          ┌────────────────────────────────────┐
          │        Frontend: React (Vite)      │
          │         + Tailwind CSS             │
+         │    (Puerto 5173 en desarrollo)    │
          └────────────────┬───────────────────┘
-                          │
+                          │ Axios / fetch a
+                          │ http://localhost:8080/api (o backend)
                           ▼
          ┌────────────────────────────────────┐
          │       Backend: Spring Boot API     │
+         │       (Puerto 8080, contenedor)    │
          └────────────────┬───────────────────┘
                           │
                           ▼
          ┌────────────────────────────────────┐
          │    PostgreSQL - Base de Datos      │
+         │       (Puerto 5432, contenedor)    │
          └────────────────────────────────────┘
+```
 
-```  
+Si usas producción con Nginx o un proxy inverso:
+```text
+Usuario Final
+    │
+    ▼
+Nginx (Puerto 80)
+    │
+    ├── Frontend estático (React construido)
+    │
+    └── Proxy /api → Backend (Spring Boot)
+
+```
+
 ✅ Cada servicio corre en su propio contenedor, orquestado por docker-compose.yml.
 
 ✅ Este entorno está preparado para desarrollo local y puede ser extendido fácilmente hacia entornos productivos.  
@@ -544,6 +566,41 @@ A continuación se detallan posibles mejoras y extensiones técnicas del proyect
 - Exponer rutas protegidas y públicas con descripciones claras.
 - Probar las APIs desde Swagger UI (`/swagger-ui.html`) sin necesidad de Postman.
 ---
+
+
+## Cómo ejecutar el proyecto
+
+### Backend y base de datos (Docker Compose)
+
+1. Construir las imágenes Docker necesarias para el backend y la base de datos:
+
+```bash
+docker-compose build
+```
+2. Levantar los contenedores que incluyen backend, base de datos y (opcionalmente) frontend si está configurado:
+```bash
+docker-compose up
+```
+Esto iniciará el backend en http://localhost:8080 y la base de datos PostgreSQL en el puerto 5432.
+
+### Frontend (modo desarrollo local)
+1. Navega a la carpeta del frontend:
+
+```bash
+cd frontend
+```
+
+2. Ejecuta el servidor de desarrollo con Vite:
+```bash
+npm run dev
+```
+
+3. Abre en tu navegador la siguiente URL para acceder al frontend:
+```bash
+http://localhost:5173
+```
+
+`Nota`: Asegúrate de que el backend esté corriendo (por ejemplo, a través de Docker Compose) para que el frontend pueda comunicarse correctamente con la API.
 
 ## 👨‍💻 Autor
 
