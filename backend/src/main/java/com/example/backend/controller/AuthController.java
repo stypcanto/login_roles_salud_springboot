@@ -18,7 +18,7 @@ import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 
 @RestController
-@RequestMapping("/api/auth")
+@RequestMapping("/auth")
 public class AuthController {
 
     private static final Logger logger = LoggerFactory.getLogger(AuthController.class);
@@ -33,9 +33,11 @@ public class AuthController {
 
     @GetMapping("/ping")
     public ResponseEntity<String> ping() {
-        logger.info("🎏 Ping recibido en /api/auth/ping");
+        logger.info("🎏 Ping recibido en /auth/ping");
         return ResponseEntity.ok("Pong");
     }
+
+  
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest request) {
@@ -50,7 +52,7 @@ public class AuthController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<?> register(@RequestBody RegisterRequest request)  {
+    public ResponseEntity<?> register(@RequestBody RegisterRequest request) {
         logger.info("📝 Intento de registro: {}", request.correo());
 
         boolean registrado = authService.register(request.correo(), request.contrasena());
@@ -78,7 +80,6 @@ public class AuthController {
         return ResponseEntity.ok(response);
     }
 
-    
     // ✅ DTOs con validaciones
     public record RegisterRequest(
             @NotBlank @Email String correo,
@@ -104,5 +105,6 @@ public class AuthController {
             String message) {
     }
 
-    public record JwtResponse(String token) {}
+    public record JwtResponse(String token) {
+    }
 }
