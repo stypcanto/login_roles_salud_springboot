@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import api from './config/api'; // Asegúrate de que la ruta esté bien
+import api from '../config/api.js'; // Asegúrate de que la ruta esté bien
 
 const Login = () => {
   const [correo, setCorreo] = useState("");
@@ -128,6 +128,11 @@ const Login = () => {
         >
           Crear una cuenta
         </button>
+
+
+
+
+
       </div>
     </div>
   );

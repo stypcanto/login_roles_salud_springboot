@@ -1,5 +1,5 @@
 import { useState } from "react";
-import api from "./config/api";
+import api from "../config/api.js";
 
 export default function ForgotPassword() {
     const [correo, setCorreo] = useState("");
