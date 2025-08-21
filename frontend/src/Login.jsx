@@ -33,11 +33,20 @@ const Login = () => {
       }
     } catch (err) {
       console.error("Error de conexión:", err);
-      if (err.response?.data?.message) {
-        setError(err.response.data.message);
+
+      // Aquí revisamos si hay respuesta del servidor
+      if (err.response) {
+        // Backend respondió con error (ej. 401)
+        setError(err.response.data || "Credenciales incorrectas");
+      } else if (err.request) {
+        // No hubo respuesta del servidor
+        setError("No se pudo conectar con el servidor");
       } else {
-        setError("Error al conectar con el servidor");
+        // Otro tipo de error
+        setError("Ocurrió un error inesperado");
       }
+
+
     } finally {
       setIsLoading(false);
     }
