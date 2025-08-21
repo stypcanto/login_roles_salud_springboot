@@ -1,52 +1,58 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import api from "./config/api";
-import { useSearchParams } from "react-router-dom";
 
-const ResetPassword = () => {
-    const [searchParams] = useSearchParams();
-    const token = searchParams.get("token"); // Recibes el token por URL
-    const [password, setPassword] = useState("");
+export default function ResetPassword() {
+    const [newPassword, setNewPassword] = useState("");
     const [mensaje, setMensaje] = useState("");
-    const [error, setError] = useState(null);
+    const [token, setToken] = useState("");
+    const navigate = useNavigate();
+    const location = useLocation();
 
-    const handleSubmit = async (e) => {
+    // Extraer token de la URL: /reset-password?token=...
+    useEffect(() => {
+        const params = new URLSearchParams(location.search);
+        const t = params.get("token");
+        if (t) setToken(t);
+        else setMensaje("Token no encontrado en la URL");
+    }, [location]);
+
+    const handleResetPassword = async (e) => {
         e.preventDefault();
-        setError(null);
-        setMensaje("");
+        if (!token) return;
 
         try {
             const res = await api.post("/auth/reset-password", {
                 token,
-                newPassword: password,
+                newPassword,
             });
-            setMensaje(res.data);
+            setMensaje(res.data); // "Contraseña cambiada correctamente"
+            setTimeout(() => navigate("/"), 2000); // Redirigir al login
         } catch (err) {
+            setMensaje("Error al cambiar la contraseña");
             console.error(err);
-            setError(err.response?.data || "Error al restablecer contraseña");
         }
     };
 
     return (
         <div className="min-h-screen flex items-center justify-center">
-            <div className="p-6 bg-white rounded shadow-md w-full max-w-md">
+            <div className="w-full max-w-md p-8 bg-white rounded shadow">
                 <h1 className="text-2xl mb-4">Restablecer Contraseña</h1>
-                {error && <p className="text-red-500 mb-2">{error}</p>}
-                {mensaje && <p className="text-green-500 mb-2">{mensaje}</p>}
-                <form onSubmit={handleSubmit}>
+                <form onSubmit={handleResetPassword}>
                     <input
                         type="password"
-                        placeholder="Nueva contraseña"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        className="w-full p-2 border rounded mb-4"
+                        placeholder="Ingrese la nueva contraseña"
+                        value={newPassword}
+                        onChange={(e) => setNewPassword(e.target.value)}
+                        className="w-full p-2 border mb-4 rounded"
+                        required
                     />
-                    <button type="submit" className="w-full p-2 bg-green-600 text-white rounded">
-                        Restablecer
+                    <button className="w-full bg-green-600 text-white py-2 rounded">
+                        Cambiar Contraseña
                     </button>
                 </form>
+                {mensaje && <p className="mt-4 text-red-500">{mensaje}</p>}
             </div>
         </div>
     );
-};
-
-export default ResetPassword;
+}
