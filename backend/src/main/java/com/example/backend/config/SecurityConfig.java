@@ -75,7 +75,10 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
         // Permitir solicitudes desde el frontend (ajusta según tu dominio)
-        config.setAllowedOrigins(List.of("http://localhost:5173"));
+        config.setAllowedOrigins(List.of(
+                "http://localhost",       // Nginx en Docker
+                "http://localhost:5173"   // Vite dev
+        ));
         // config.setAllowedOrigins(List.of("https://miapp.com"));
         // Con este link pasa producción
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));

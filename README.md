@@ -57,10 +57,42 @@ curl http://localhost:8080/auth/ping
 
 ```
 
+
 - Para probar desde el front:
 
 ```bash
 curl http://localhost:8080/auth/ping
+```
+- Frontend (frontend/.env)
+```` 
+VITE_API_URL=/api
+
+````
+
+## 🔧 Configuración de Variables de Entorno
+Backend (.env.production)
+```bash
+ENVIRONMENT=production
+
+POSTGRES_DB=mydb
+POSTGRES_USER=postgres
+POSTGRES_PASSWORD=postgres
+
+SPRING_PORT=8080
+SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/mydb
+SPRING_DATASOURCE_USERNAME=postgres
+SPRING_DATASOURCE_PASSWORD=postgres
+SPRING_JPA_HIBERNATE_DDL_AUTO=update
+
+FRONTEND_PORT=80
+VITE_API_URL=/api
+
+SMTP_HOST=disabled
+SMTP_PORT=0
+SMTP_USERNAME=
+SMTP_PASSWORD=
+SMTP_FROM=noreply@localhost
+
 ```
 
 ## 🧱 Estructura del Proyecto

@@ -4,8 +4,9 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile.prod
-      args:
-        VITE_API_URL: http://backend:8080
+      args: {}
+        # VITE_API_URL: http://backend:8080
+
     ports:
       - "80:80"
     networks:
