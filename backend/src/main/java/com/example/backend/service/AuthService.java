@@ -1,55 +1,81 @@
 package com.example.backend.service;
 
+import java.util.List;
+
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import com.example.backend.entity.Profesional;
+import com.example.backend.entity.Rol;
 import com.example.backend.entity.User;
+import com.example.backend.repository.ProfesionalRepository;
+import com.example.backend.repository.RolRepository;
 import com.example.backend.repository.UserRepository;
-import com.example.backend.security.JwtUtil;
 
 @Service
+@Transactional
 public class AuthService {
 
     private final AuthenticationManager authenticationManager;
-    private final JwtUtil jwtUtil;
-    private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final UserRepository userRepository;
+    private final ProfesionalRepository profesionalRepository;
+    private final RolRepository rolRepository;
 
     public AuthService(AuthenticationManager authenticationManager,
-            JwtUtil jwtUtil,
-            UserRepository userRepository,
-            PasswordEncoder passwordEncoder) {
+                       PasswordEncoder passwordEncoder,
+                       UserRepository userRepository,
+                       ProfesionalRepository profesionalRepository,
+                       RolRepository rolRepository) {
         this.authenticationManager = authenticationManager;
-        this.jwtUtil = jwtUtil;
-        this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
+        this.userRepository = userRepository;
+        this.profesionalRepository = profesionalRepository;
+        this.rolRepository = rolRepository;
     }
 
-
-
-public String authenticate(String correo, String contrasena) {
-    try {
-        authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(correo, contrasena));
-        // Si no lanza excepción, generar token
-        return jwtUtil.generateToken(correo);
-    } catch (AuthenticationException e) {
-        throw new RuntimeException("Credenciales inválidas");
+    // ==================== Autenticación ====================
+    public void authenticate(String correo, String contrasena) {
+        try {
+            authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(correo, contrasena)
+            );
+        } catch (AuthenticationException e) {
+            throw new RuntimeException("Credenciales inválidas");
+        }
     }
-}
 
-
-    public boolean register(String correo, String contrasena) {
+    // ==================== Registro de usuarios ====================
+    public User registerAndReturnUser(String correo, String contrasena) {
         if (userRepository.findByCorreo(correo).isPresent()) {
-            return false; // Usuario ya existe
+            return null; // Usuario ya existe
         }
         User nuevoUsuario = new User();
         nuevoUsuario.setCorreo(correo);
         nuevoUsuario.setContrasena(passwordEncoder.encode(contrasena));
-        userRepository.save(nuevoUsuario);
-        return true;
+        return userRepository.save(nuevoUsuario);
     }
+
+    public User findByCorreo(String correo) {
+        return userRepository.findByCorreo(correo).orElse(null);
+    }
+
+    public List<Rol> getRoles(Long usuarioId) {
+        User user = userRepository.findById(usuarioId).orElse(null);
+        return user != null ? List.copyOf(user.getRoles()) : List.of();
+    }
+
+    // ==================== Profesionales ====================
+    public Profesional saveProfesional(Profesional profesional) {
+        return profesionalRepository.save(profesional);
+    }
+
+    public Profesional getProfesionalByUsuarioId(Long usuarioId) {
+        return profesionalRepository.findByUsuarioId(usuarioId).orElse(null);
+    }
+
 }

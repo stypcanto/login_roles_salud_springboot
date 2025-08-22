@@ -1,5 +1,7 @@
 package com.example.backend.controller;
 
+import java.util.List;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -7,12 +9,11 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.AuthenticationException;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
+import com.example.backend.entity.Profesional;
+import com.example.backend.entity.Rol;
+import com.example.backend.entity.User;
 import com.example.backend.security.JwtUtil;
 import com.example.backend.service.AuthService;
 import com.example.backend.service.PasswordResetService;
@@ -33,9 +34,9 @@ public class AuthController {
     private final JwtUtil jwtUtil;
 
     public AuthController(AuthService authService,
-            PasswordResetService passwordResetService,
-            AuthenticationManager authenticationManager,
-            JwtUtil jwtUtil) {
+                          PasswordResetService passwordResetService,
+                          AuthenticationManager authenticationManager,
+                          JwtUtil jwtUtil) {
         this.authService = authService;
         this.passwordResetService = passwordResetService;
         this.authenticationManager = authenticationManager;
@@ -50,40 +51,58 @@ public class AuthController {
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest request) {
-        logger.info("Intento de login con correo: {}", request.correo());
         try {
-            // Aquí autenticas con Spring Security:
+            // Autenticación con Spring Security
             authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(request.correo(), request.contrasena()));
+                    new UsernamePasswordAuthenticationToken(request.correo(), request.contrasena())
+            );
 
-            // Si no lanza excepción, generas el token:
+            User usuario = authService.findByCorreo(request.correo());
+
+            if (!usuario.getActivo()) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                        .body("Usuario pendiente de aprobación");
+            }
+
             String token = jwtUtil.generateToken(request.correo());
-            logger.info("✅ Login exitoso para: {}", request.correo());
-            return ResponseEntity.ok(new JwtResponse(token));
+            List<Rol> roles = authService.getRoles(usuario.getId());
+            Profesional profesional = authService.getProfesionalByUsuarioId(usuario.getId());
+
+            return ResponseEntity.ok(new JwtLoginResponse(token, roles, profesional));
 
         } catch (AuthenticationException e) {
-            logger.warn("❌ Fallo en login para {}: Credenciales inválidas", request.correo());
+            logger.warn("❌ Fallo de login: credenciales inválidas");
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Credenciales inválidas");
         } catch (Exception e) {
-            logger.error("❌ Error inesperado en login para {}: {}", request.correo(), e.getMessage());
+            logger.error("❌ Error inesperado en login: {}", e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error en el servidor");
         }
     }
 
     @PostMapping("/register")
     public ResponseEntity<?> register(@RequestBody RegisterRequest request) {
-        logger.info("📝 Intento de registro: {}", request.correo());
+        User usuario = authService.registerAndReturnUser(request.correo(), request.contrasena());
 
-        boolean registrado = authService.register(request.correo(), request.contrasena());
-
-        if (registrado) {
-            logger.info("✅ Registro exitoso para: {}", request.correo());
-            return ResponseEntity.ok("Usuario registrado correctamente.");
-        } else {
-            logger.warn("⚠️ Registro fallido, correo ya existe: {}", request.correo());
+        if (usuario == null) {
             return ResponseEntity.badRequest().body("El usuario ya existe.");
         }
+
+        Profesional profesional = new Profesional();
+        profesional.setNombres(request.nombres());
+        profesional.setApellidos(request.apellidos());
+        profesional.setDocumento(request.documento());
+        profesional.setTipoDocumento(request.tipoDocumento()); // ahora sí existe
+        profesional.setEspecialidad(request.especialidad());
+        profesional.setTelefono(request.telefono());
+        profesional.setEmail(request.correo());
+        profesional.setActivo(false);
+        profesional.setUsuarioId(usuario.getId());
+
+        authService.saveProfesional(profesional);
+
+        return ResponseEntity.ok("Usuario registrado correctamente. Pendiente de aprobación por administrador.");
     }
+
 
     @PostMapping("/forgot-password")
     public ResponseEntity<String> forgotPassword(@RequestBody @Valid ForgotPasswordRequest request) {
@@ -99,31 +118,38 @@ public class AuthController {
         return ResponseEntity.ok(response);
     }
 
-    // ✅ DTOs con validaciones
+    // ================= DTOs =================
+
     public record RegisterRequest(
             @NotBlank @Email String correo,
-            @NotBlank String contrasena) {
-    }
+            @NotBlank String contrasena,
+            @NotBlank String nombres,
+            @NotBlank String apellidos,
+            @NotBlank String tipoDocumento,
+            @NotBlank String documento,
+            String especialidad,
+            String telefono
+    ) {}
 
     public record LoginRequest(
             @NotBlank @Email String correo,
-            @NotBlank String contrasena) {
-    }
+            @NotBlank String contrasena
+    ) {}
 
     public record ForgotPasswordRequest(
-            @NotBlank @Email String correo) {
-    }
+            @NotBlank @Email String correo
+    ) {}
 
     public record ResetPasswordRequest(
             @NotBlank String token,
-            @NotBlank String newPassword) {
-    }
+            @NotBlank String newPassword
+    ) {}
 
-    public record LoginResponse(
-            boolean success,
-            String message) {
-    }
+    // ================= Respuestas =================
 
-    public record JwtResponse(String token) {
-    }
+    public record JwtLoginResponse(
+            String token,
+            List<Rol> roles,
+            Profesional profesional
+    ) {}
 }

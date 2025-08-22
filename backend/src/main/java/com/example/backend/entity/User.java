@@ -16,18 +16,24 @@ public class User implements UserDetails {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(nullable = false, unique = true)
     private String correo;
+
+    @Column(nullable = false)
     private String contrasena;
+
+    @Column(nullable = false)
+    private Boolean activo = true; // <-- agregar este campo
 
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
-        name = "usuario_roles",
-        joinColumns = @JoinColumn(name = "usuario_id"),
-        inverseJoinColumns = @JoinColumn(name = "rol_id")
+            name = "usuario_roles",
+            joinColumns = @JoinColumn(name = "usuario_id"),
+            inverseJoinColumns = @JoinColumn(name = "rol_id")
     )
     private Collection<Rol> roles;
 
-    // Getters y Setters
+    // ================= Getters y Setters =================
 
     public Long getId() {
         return id;
@@ -57,13 +63,20 @@ public class User implements UserDetails {
         this.roles = roles;
     }
 
-    // Implementaciones de UserDetails
+    public Boolean getActivo() {
+        return activo;
+    }
+
+    public void setActivo(Boolean activo) {
+        this.activo = activo;
+    }
+    // ================= Implementaciones de UserDetails =================
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return roles.stream()
-            .map(rol -> new SimpleGrantedAuthority("ROLE_" + rol.getNombre()))
-            .collect(Collectors.toList());
+                .map(rol -> new SimpleGrantedAuthority("ROLE_" + rol.getNombre()))
+                .collect(Collectors.toList());
     }
 
     @Override
@@ -91,8 +104,10 @@ public class User implements UserDetails {
         return true;
     }
 
+
+
     @Override
     public boolean isEnabled() {
-        return true;
+        return activo; // <-- usar el campo activo
     }
 }
