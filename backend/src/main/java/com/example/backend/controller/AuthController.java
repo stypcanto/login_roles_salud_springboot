@@ -59,12 +59,17 @@ public class AuthController {
 
             User usuario = authService.findByCorreo(request.correo());
 
-            if (!usuario.getActivo()) {
+            // 🔒 Verificación del campo activo
+            // Si el usuario no está activo, aunque pase la autenticación, se bloquea el acceso
+            if (!usuario.isActivo()) {
                 return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                        .body("Usuario pendiente de aprobación");
+                        .body("Usuario pendiente de aprobación por el área TI");
             }
 
+            // Generar el token JWT
             String token = jwtUtil.generateToken(request.correo());
+
+            // Cargar roles y profesional asociados
             List<Rol> roles = authService.getRoles(usuario.getId());
             Profesional profesional = authService.getProfesionalByUsuarioId(usuario.getId());
 
@@ -87,20 +92,21 @@ public class AuthController {
             return ResponseEntity.badRequest().body("El usuario ya existe.");
         }
 
+        // Se crea el profesional asociado
         Profesional profesional = new Profesional();
         profesional.setNombres(request.nombres());
         profesional.setApellidos(request.apellidos());
         profesional.setDocumento(request.documento());
-        profesional.setTipoDocumento(request.tipoDocumento()); // ahora sí existe
+        profesional.setTipoDocumento(request.tipoDocumento());
         profesional.setEspecialidad(request.especialidad());
         profesional.setTelefono(request.telefono());
         profesional.setEmail(request.correo());
-        profesional.setActivo(false);
+        profesional.setActivo(false); // 🚨 Se marca inactivo hasta que TI lo apruebe
         profesional.setUsuarioId(usuario.getId());
 
         authService.saveProfesional(profesional);
 
-        return ResponseEntity.ok("Usuario registrado correctamente. Pendiente de aprobación por administrador.");
+        return ResponseEntity.ok("Usuario registrado correctamente. Pendiente de aprobación por el área TI.");
     }
 
 

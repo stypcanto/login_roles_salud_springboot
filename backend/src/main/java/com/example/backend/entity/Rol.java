@@ -1,4 +1,5 @@
 package com.example.backend.entity;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import java.util.Set;
 
@@ -14,6 +15,7 @@ public class Rol {
 
     // Relación inversa del ManyToMany con User
     @ManyToMany(mappedBy = "roles")
+    @JsonIgnore  // <- Esto evita la recursión infinita
     private Set<User> usuarios;
 
     public Long getId() {

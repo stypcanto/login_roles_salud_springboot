@@ -1,13 +1,17 @@
 # 🔐 Proyecto de Autenticación - Spring Boot + React + Docker
 
-Sistema de autenticación completo con Spring Boot (backend), React + Vite (frontend), PostgreSQL y Docker.
-
+Sistema completo de autenticación de usuarios, con backend en Spring Boot, frontend en React + Vite + Tailwind CSS, PostgreSQL como base de datos y orquestación con Docker.
 ---
 
 ## 🎯 Objetivo
 
-Autenticación segura de usuarios mediante correo y contraseña, con rutas protegidas, recuperación de contraseña por token y API REST escalable.
 
+Implementar un sistema de autenticación seguro mediante correo y contraseña, con:
+
+- Rutas protegidas
+- JWT (JSON Web Tokens) para sesiones
+- Recuperación de contraseña mediante token
+- API REST escalable y mantenible
 ---
 
 ## ⚙️ Stack Tecnológico
@@ -128,3 +132,27 @@ JOIN roles r ON r.id = ur.rol_id;
 ✅ Esta estrategia mantiene la integridad referencial y evita relaciones duplicadas innecesarias.
 
 
+## ✅ Control de usuarios activos
+
+
+La columna `activo` en la tabla `usuarios` indica si un usuario está habilitado para autenticarse:
+
+- `true` → usuario activo, puede iniciar sesión ✅
+- `false` → usuario inactivo, no puede iniciar sesión ⚠️
+
+**Importancia:**
+
+- Permite deshabilitar cuentas temporal o permanentemente sin eliminarlas.
+- Mejora la seguridad y el control administrativo.
+- Evita que usuarios con roles asignados accedan si su cuenta está desactivada.
+
+En la lógica de login, se valida que `activo = true` antes de generar el token JWT.
+
+```sql
+
+-- Ver todos los usuarios activos
+SELECT id, correo, activo
+FROM usuarios
+WHERE activo = true;
+
+```

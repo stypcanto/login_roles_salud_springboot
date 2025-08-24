@@ -23,16 +23,20 @@ public class CustomUserDetailsService implements UserDetailsService {
         User user = userRepository.findByCorreo(correo)
                 .orElseThrow(() -> new UsernameNotFoundException("Usuario no encontrado: " + correo));
 
+        System.out.println("🔍 Usuario encontrado: " + user.getCorreo());
+        System.out.println("🔍 Hash en BD: " + user.getContrasena());
+        System.out.println("🔍 Roles: " + user.getRoles().stream().map(r -> r.getNombre()).toList());
+
         // Convertir roles a GrantedAuthority
         List<GrantedAuthority> authorities = user.getRoles().stream()
                 .map(rol -> new SimpleGrantedAuthority("ROLE_" + rol.getNombre()))
                 .collect(Collectors.toList());
 
         // Devolver el usuario autenticable
-        return new org.springframework.security.core.userdetails.User(
-                user.getCorreo(),
-                user.getContrasena(),
-                authorities
-        );
+        return org.springframework.security.core.userdetails.User.withUsername(user.getCorreo())
+                .password(user.getContrasena())
+                .authorities(authorities) // 👈 ahora sí usa los roles dinámicamente
+                .accountLocked(!user.isActivo())
+                .build();
     }
 }

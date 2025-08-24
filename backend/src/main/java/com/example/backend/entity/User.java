@@ -22,8 +22,9 @@ public class User implements UserDetails {
     @Column(nullable = false)
     private String contrasena;
 
+    // 🚨 Nuevo campo para controlar si la cuenta está activa o no
     @Column(nullable = false)
-    private Boolean activo = true; // <-- agregar este campo
+    private boolean activo = false; // por defecto inactivo hasta que TI apruebe
 
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
@@ -63,13 +64,15 @@ public class User implements UserDetails {
         this.roles = roles;
     }
 
-    public Boolean getActivo() {
+    // ✅ Getter y Setter para activo
+    public boolean isActivo() {
         return activo;
     }
 
-    public void setActivo(Boolean activo) {
+    public void setActivo(boolean activo) {
         this.activo = activo;
     }
+
     // ================= Implementaciones de UserDetails =================
 
     @Override
@@ -104,10 +107,10 @@ public class User implements UserDetails {
         return true;
     }
 
-
-
+    // 🔑 Spring Security usará esto para saber si el usuario puede loguearse
     @Override
     public boolean isEnabled() {
-        return activo; // <-- usar el campo activo
+        return activo;
     }
+
 }
