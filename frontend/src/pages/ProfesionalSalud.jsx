@@ -46,7 +46,7 @@ const RolesPortal = () => {
                 if (error.response && (error.response.status === 401 || error.response.status === 403)) {
                     console.warn("🚨 Token inválido. Cerrando sesión...");
                     localStorage.removeItem("token");
-                    window.location.href = "/login";
+                    window.location.href = "/admin";
                 }
             }
         };

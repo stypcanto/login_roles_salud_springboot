@@ -2,14 +2,14 @@ import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import api from '../config/api.js';
 
-const Login = () => {
+const Admin = () => {
   const [correo, setCorreo] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
 
-  const handleLogin = async (e) => {
+  const handleAdmin = async (e) => {
     e.preventDefault();
     setError(null);
 
@@ -84,7 +84,7 @@ const Login = () => {
               <p className="mb-4 text-center text-red-500">{ error }</p>
           ) }
 
-          <form onSubmit={ handleLogin }>
+          <form onSubmit={ handleAdmin }>
             <div className="mb-4">
               <input
                   type="email"
@@ -148,4 +148,4 @@ const Login = () => {
   );
 };
 
-export default Login;
+export default Admin;

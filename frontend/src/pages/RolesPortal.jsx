@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import api from "../config/api"; // tu api.js
 import { useNavigate } from "react-router-dom";
 
 export default function RolesPortal() {
@@ -7,43 +6,59 @@ export default function RolesPortal() {
     const navigate = useNavigate();
 
     useEffect(() => {
-        const token = localStorage.getItem("token"); // el token que guardaste en login
+        // Verificar token
+        const token = localStorage.getItem("token");
         if (!token) {
-            navigate("/login");
+            navigate("/admin"); // Redirige al login si no hay token
             return;
         }
 
-        // Llamada protegida con Authorization
-        api.get("/portaladmin", {
-            headers: {
-                Authorization: `Bearer ${token}`,
-            },
-        })
-            .then((res) => setRoles(res.data))
-            .catch((err) => {
-                console.error("Error al obtener roles:", err);
-                if (err.response?.status === 403 || err.response?.status === 401) {
-                    localStorage.removeItem("token");
-                    navigate("/login");
-                }
-            });
+        // Obtener roles del localStorage
+        const storedRoles = JSON.parse(localStorage.getItem("roles")) || [];
+        setRoles(storedRoles.map((r) => r.nombre)); // Solo nombres de roles
     }, [navigate]);
 
+    // Función para navegar según el rol
+    const handleRoleClick = (rol) => {
+        switch (rol) {
+            case "Superadmin":
+            case "Administrador":
+                navigate("/RolesPortal"); // O tu ruta de administración
+                break;
+            case "Coordinador Medico":
+                navigate("/CoordinadorEspecialidades");
+                break;
+            case "Medico":
+                navigate("/PortalMedico");
+                break;
+            case "Coordinador Admision":
+                navigate("/GestionTerritorial");
+                break;
+            default:
+                navigate("/"); // Ruta genérica o 404
+                break;
+        }
+    };
+
     return (
-        <div className="p-6">
-            <h1 className="text-xl font-bold mb-4">Selecciona tu Portal</h1>
-            <ul className="space-y-2">
-                {roles.map((rol, i) => (
-                    <li key={i}>
-                        <button
-                            onClick={() => navigate(`/${rol.toLowerCase()}`)}
-                            className="px-4 py-2 rounded bg-blue-500 text-white hover:bg-blue-600"
-                        >
-                            {rol}
-                        </button>
-                    </li>
-                ))}
-            </ul>
+        <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 p-6">
+            <h1 className="text-2xl font-bold mb-6 text-blue-900">Selecciona tu Portal</h1>
+            {roles.length === 0 ? (
+                <p className="text-gray-700">No tienes roles asignados.</p>
+            ) : (
+                <ul className="space-y-4">
+                    {roles.map((rol, index) => (
+                        <li key={index}>
+                            <button
+                                onClick={() => handleRoleClick(rol)}
+                                className="w-full px-6 py-3 rounded-lg bg-blue-600 text-white font-semibold hover:bg-blue-700 transition"
+                            >
+                                {rol}
+                            </button>
+                        </li>
+                    ))}
+                </ul>
+            )}
         </div>
     );
 }

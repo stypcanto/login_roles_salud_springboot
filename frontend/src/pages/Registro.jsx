@@ -22,7 +22,7 @@ function Registro() {
       // ✅ Registro exitoso
       setMensaje("✅ Usuario registrado correctamente.");
 
-      // Redirige al login luego de 2 segundos
+      // Redirige al admin luego de 2 segundos
       setTimeout(() => {
         navigate("/");
       }, 2000);

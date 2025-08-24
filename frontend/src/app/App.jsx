@@ -1,5 +1,5 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import Login from "../pages/Login.jsx";
+import Admin from "../pages/Admin.jsx";
 import CoordinadorEspecialidades from "../pages/CoordinadorEspecialidades.jsx";
 import Registro from "../pages/Registro.jsx";
 import TestPing from "../pages/TestPing.jsx";
@@ -16,7 +16,8 @@ function App() {
         <BrowserRouter>
             <Routes>
                 <Route path="/test-ping" element={<TestPing />} />
-                <Route path="/" element={<Login />} />
+                <Route path="/" element={<Admin />} />
+                <Route path="/admin" element={<Admin />} />
                 <Route path="/registro" element={<Registro />} />
                 <Route path="/forgot-password" element={<ForgotPassword />} />
                 <Route path="/reset-password" element={<ResetPassword />} />
