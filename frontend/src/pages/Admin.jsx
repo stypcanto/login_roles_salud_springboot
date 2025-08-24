@@ -1,151 +1,63 @@
-import { useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
-import api from '../config/api.js';
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 
-const Admin = () => {
-  const [correo, setCorreo] = useState("");
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const navigate = useNavigate();
+export default function Admin() {
+    const [roles, setRoles] = useState([]);
+    const navigate = useNavigate();
 
-  const handleAdmin = async (e) => {
-    e.preventDefault();
-    setError(null);
+    // Mapa de roles a rutas
+    const roleRoutes = {
+        Superadmin: "/roles",           // Página de administración
+        Administrador: "/roles",        // Página de administración
+        "Coordinador Medico": "/CoordinadorEspecialidades",
+        Medico: "/PortalMedico",
+        "Coordinador Admision": "/GestionTerritorial"
+    };
 
-    if (!correo || !password) {
-      setError("Todos los campos son obligatorios");
-      return;
-    }
-
-    try {
-      setIsLoading(true);
-
-      const res = await api.post("/auth/login", { correo, contrasena: password });
-
-      const { token, roles, profesional } = res.data;
-
-      if (token) {
-        // Guardamos datos en localStorage
-        localStorage.setItem("token", token);
-        localStorage.setItem("roles", JSON.stringify(roles));
-        localStorage.setItem("profesional", JSON.stringify(profesional));
-
-        // Redirección según rol principal
-        const rolPrincipal = roles[0]?.nombre;
-
-        switch (rolPrincipal) {
-          case "Superadmin":
-          case "Administrador":
-            navigate("/roles"); // Página de administración
-            break;
-          case "Coordinador Medico":
-            navigate("/CoordinadorEspecialidades");
-            break;
-          case "Medico":
-            navigate("/PortalMedico");
-            break;
-          case "Coordinador Admisio":
-            navigate("/GestionTerritorial");
-            break;
-          default:
-            navigate("/"); // Página genérica o 404
-            break;
+    useEffect(() => {
+        const token = localStorage.getItem("token");
+        if (!token) {
+            navigate("/admin"); // Redirige al login si no hay token
+            return;
         }
 
-      } else {
-        setError("Credenciales incorrectas");
-      }
+        // Obtener roles del localStorage
+        const storedRoles = JSON.parse(localStorage.getItem("roles")) || [];
+        setRoles(storedRoles.map(r => r.nombre)); // Solo nombres de roles
+    }, [navigate]);
 
-    } catch (err) {
-      console.error("Error de conexión:", err);
+    const handleRoleClick = (rol) => {
+        const ruta = roleRoutes[rol];
+        if (ruta) {
+            navigate(ruta);
+        } else {
+            navigate("/"); // fallback a página genérica o 404
+        }
+    };
 
-      if (err.response) {
-        setError(err.response.data || "Credenciales incorrectas");
-      } else if (err.request) {
-        setError("No se pudo conectar con el servidor");
-      } else {
-        setError("Ocurrió un error inesperado");
-      }
-
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  return (
-      <div className="min-h-screen bg-cover bg-center bg-[url('/images/fondo-portal-web-cenate-2025.png')] flex items-center justify-center">
-        <div className="w-full max-w-md p-8 bg-white rounded-lg shadow-lg">
-          <h1 className="mb-6 text-3xl font-semibold text-center text-blue-900">
-            Login CENATE
-          </h1>
-
-          { error && (
-              <p className="mb-4 text-center text-red-500">{ error }</p>
-          ) }
-
-          <form onSubmit={ handleAdmin }>
-            <div className="mb-4">
-              <input
-                  type="email"
-                  placeholder="Correo electrónico"
-                  value={ correo }
-                  onChange={ (e) => setCorreo(e.target.value) }
-                  className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-
-            <div className="mb-6">
-              <input
-                  type="password"
-                  placeholder="Contraseña"
-                  value={ password }
-                  onChange={ (e) => setPassword(e.target.value) }
-                  className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-
-            <button
-                type="submit"
-                disabled={ isLoading }
-                className={ `w-full py-3 px-6 bg-[#2e63a6] text-white text-sm font-semibold rounded-lg shadow-md hover:scale-105 focus:outline-none focus:ring-2 ${isLoading ? "opacity-50 cursor-not-allowed" : "hover:bg-[#2e63a6]"
-                }` }
-            >
-              { isLoading ? "Cargando..." : "Iniciar sesión" }
-            </button>
-          </form>
-
-          <div className="flex items-center justify-center mt-4">
-            <Link
-                to="/forgot-password"
-                className="text-sm text-[#2e63a6] hover:text-blue-500 underline"
-            >
-              ¿Olvidaste tu contraseña?
-            </Link>
-          </div>
-
-          <div className="mt-6 text-center">
-            <p className="text-sm text-gray-700">
-              ¿No tienes una cuenta?{ " " }
-              <span
-                  className="text-[#2e63a6] cursor-pointer font-semibold"
-                  onClick={ () => navigate("/registro") }
-              >
-              Únete gratis
-            </span>
+    if (roles.length === 0) {
+        return (
+            <p className="text-center text-gray-700 mt-10">
+                No tienes roles asignados.
             </p>
-          </div>
+        );
+    }
 
-          <button
-              type="button"
-              onClick={ () => navigate("/registro") }
-              className="w-full p-3 mt-4 text-white bg-green-700 rounded-lg hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
-          >
-            Crear una cuenta
-          </button>
+    return (
+        <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 p-6">
+            <h1 className="text-2xl font-bold mb-6 text-blue-900">Selecciona tu Portal</h1>
+            <ul className="space-y-4 w-full max-w-md">
+                {roles.map((rol, index) => (
+                    <li key={index}>
+                        <button
+                            onClick={() => handleRoleClick(rol)}
+                            className="w-full px-6 py-3 rounded-lg bg-blue-600 text-white font-semibold hover:bg-blue-700 transition"
+                        >
+                            {rol}
+                        </button>
+                    </li>
+                ))}
+            </ul>
         </div>
-      </div>
-  );
-};
-
-export default Admin;
+    );
+}
