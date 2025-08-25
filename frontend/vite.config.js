@@ -1,6 +1,6 @@
 import { defineConfig, loadEnv } from 'vite'
 import react from '@vitejs/plugin-react'
-import process from 'process'
+import path from 'path'
 
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '')
@@ -8,8 +8,13 @@ export default defineConfig(({ mode }) => {
   return {
     plugins: [react()],
     base: '/',
+    resolve: {
+      alias: {
+        '@': path.resolve(__dirname, './src'),
+      },
+    },
     define: {
-      'process.env': {}, // 👈 soluciona "process is not defined"
+      'process.env': {}, // 👈 evita "process is not defined"
     },
     server: {
       proxy: {
@@ -17,9 +22,9 @@ export default defineConfig(({ mode }) => {
           target: env.VITE_API_URL || 'http://localhost:8080',
           changeOrigin: true,
         },
-        // agregar otros endpoints que necesites proxear
+        // 👉 aquí puedes agregar más proxys si necesitas
+        // '/api': { target: env.VITE_API_URL, changeOrigin: true }
       },
     },
-
   }
 })

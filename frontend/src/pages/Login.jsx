@@ -13,12 +13,12 @@ const Login = () => {
   const roleRoutes = {
     Superadmin: "/admin-panel",
     Administrador: "/admin-panel",
-    "Coordinador Medico": "/CoordinadorEspecialidades",
-    Medico: "/PortalMedico",
-    "Coordinador Admision": "/GestionTerritorial",
+    "Coordinador Medico": "/coordinador-especialidades",
+    Medico: "/portal-medico",
+    "Coordinador Admision": "/gestion-territorial",
   };
 
-  const handleAdmin = async (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
     setError(null);
 
@@ -42,27 +42,29 @@ const Login = () => {
         return;
       }
 
-      // Guardamos datos en localStorage
+      // Guardamos datos completos en localStorage
+      const user = {
+        id: profesional?.id,
+        nombres: profesional?.nombres,
+        apellidos: profesional?.apellidos,
+        correo: profesional?.correoUsuario,
+        roles: roles.map(r => r.nombre), // array de roles
+        activo: profesional?.activoUsuario
+      };
+
       localStorage.setItem("token", token);
-      localStorage.setItem("roles", JSON.stringify(roles));
-      localStorage.setItem("profesional", JSON.stringify(profesional));
+      localStorage.setItem("user", JSON.stringify(user));
 
       // Redirección según rol principal
       const rolPrincipal = roles[0]?.nombre;
-      const ruta = roleRoutes[rolPrincipal] || "/"; // fallback
+      const ruta = roleRoutes[rolPrincipal] || "/";
       navigate(ruta);
 
     } catch (err) {
       console.error("Error de conexión:", err);
-
-      if (err.response) {
-        setError(err.response.data || "Credenciales incorrectas");
-      } else if (err.request) {
-        setError("No se pudo conectar con el servidor");
-      } else {
-        setError("Ocurrió un error inesperado");
-      }
-
+      if (err.response) setError(err.response.data || "Credenciales incorrectas");
+      else if (err.request) setError("No se pudo conectar con el servidor");
+      else setError("Ocurrió un error inesperado");
     } finally {
       setIsLoading(false);
     }
@@ -77,7 +79,7 @@ const Login = () => {
 
           {error && <p className="mb-4 text-center text-red-500">{error}</p>}
 
-          <form onSubmit={handleAdmin}>
+          <form onSubmit={handleLogin}>
             <div className="mb-4">
               <input
                   type="email"
