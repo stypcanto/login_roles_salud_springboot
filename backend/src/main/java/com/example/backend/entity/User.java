@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import java.util.Collection;
 import java.util.stream.Collectors;
@@ -22,9 +23,8 @@ public class User implements UserDetails {
     @Column(nullable = false)
     private String contrasena;
 
-    // 🚨 Nuevo campo para controlar si la cuenta está activa o no
     @Column(nullable = false)
-    private boolean activo = false; // por defecto inactivo hasta que TI apruebe
+    private boolean activo = false;
 
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
@@ -32,6 +32,7 @@ public class User implements UserDetails {
             joinColumns = @JoinColumn(name = "usuario_id"),
             inverseJoinColumns = @JoinColumn(name = "rol_id")
     )
+    @JsonIgnore // Evita ciclos al serializar
     private Collection<Rol> roles;
 
     // ================= Getters y Setters =================
@@ -113,4 +114,7 @@ public class User implements UserDetails {
         return activo;
     }
 
+    public Boolean getActivo() {
+        return activo;
+    }
 }

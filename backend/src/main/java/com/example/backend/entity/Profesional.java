@@ -1,7 +1,10 @@
 package com.example.backend.entity;
 
 import jakarta.persistence.*;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 @Entity
 @Table(name = "profesionales")
@@ -9,7 +12,7 @@ public class Profesional {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id;
+    private Long id;
 
     @Column(nullable = false)
     private String nombres;
@@ -18,128 +21,87 @@ public class Profesional {
     private String apellidos;
 
     private String documento;
+
     private String colegiatura;
+
     private String especialidad;
+
+    @Column(name = "ipress_id")
     private Integer ipressId;
+
     private String telefono;
-    private String email;
-    private Boolean activo = true;
 
-    private LocalDateTime createdAt = LocalDateTime.now();
-    private LocalDateTime updatedAt = LocalDateTime.now();
+    @CreationTimestamp
+    @Column(name = "created_at", updatable = false)
+    private LocalDateTime createdAt;
 
-    private String tipoDocumento;
+    @UpdateTimestamp
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt;
 
-    @Column(unique = true)
-    private Long usuarioId;
+    // Nuevos campos para documentos y RNE
+    @Column(name = "tipo_documento")
+    private String tipoDocumento;   // DNI o C.Extranjería
+
+    @Column(name = "numero_documento")
+    private String numeroDocumento;
+
+    @Column(name = "rne")
+    private String rne;             // solo para médicos especialistas
+
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "usuario_id")
+    private User usuario;
+
+    @Column(name = "fecha_nacimiento")
+    private LocalDate fechaNacimiento;
 
     // ================= Getters y Setters =================
 
-    public Integer getId() {
-        return id;
-    }
+    public Long getId() { return id; }
 
-    public String getNombres() {
-        return nombres;
-    }
+    public String getNombres() { return nombres; }
+    public void setNombres(String nombres) { this.nombres = nombres; }
 
-    public void setNombres(String nombres) {
-        this.nombres = nombres;
-    }
+    public String getApellidos() { return apellidos; }
+    public void setApellidos(String apellidos) { this.apellidos = apellidos; }
 
-    public String getApellidos() {
-        return apellidos;
-    }
+    public String getDocumento() { return documento; }
+    public void setDocumento(String documento) { this.documento = documento; }
 
-    public void setApellidos(String apellidos) {
-        this.apellidos = apellidos;
-    }
+    public String getColegiatura() { return colegiatura; }
+    public void setColegiatura(String colegiatura) { this.colegiatura = colegiatura; }
 
-    public String getDocumento() {
-        return documento;
-    }
+    public String getEspecialidad() { return especialidad; }
+    public void setEspecialidad(String especialidad) { this.especialidad = especialidad; }
 
-    public void setDocumento(String documento) {
-        this.documento = documento;
-    }
+    public Integer getIpressId() { return ipressId; }
+    public void setIpressId(Integer ipressId) { this.ipressId = ipressId; }
 
-    public String getColegiatura() {
-        return colegiatura;
-    }
+    public String getTelefono() { return telefono; }
+    public void setTelefono(String telefono) { this.telefono = telefono; }
 
-    public void setColegiatura(String colegiatura) {
-        this.colegiatura = colegiatura;
-    }
+    public LocalDateTime getCreatedAt() { return createdAt; }
+    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
 
-    public String getEspecialidad() {
-        return especialidad;
-    }
+    public LocalDateTime getUpdatedAt() { return updatedAt; }
+    public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
 
-    public void setEspecialidad(String especialidad) {
-        this.especialidad = especialidad;
-    }
+    public String getTipoDocumento() { return tipoDocumento; }
+    public void setTipoDocumento(String tipoDocumento) { this.tipoDocumento = tipoDocumento; }
 
-    public Integer getIpressId() {
-        return ipressId;
-    }
+    public String getNumeroDocumento() { return numeroDocumento; }
+    public void setNumeroDocumento(String numeroDocumento) { this.numeroDocumento = numeroDocumento; }
 
-    public void setIpressId(Integer ipressId) {
-        this.ipressId = ipressId;
-    }
+    public String getRne() { return rne; }
+    public void setRne(String rne) { this.rne = rne; }
 
-    public String getTelefono() {
-        return telefono;
-    }
+    public User getUsuario() { return usuario; }
+    public void setUsuario(User usuario) { this.usuario = usuario; }
 
-    public void setTelefono(String telefono) {
-        this.telefono = telefono;
-    }
+    public LocalDate getFechaNacimiento() { return fechaNacimiento; }
+    public void setFechaNacimiento(LocalDate fechaNacimiento) { this.fechaNacimiento = fechaNacimiento; }
 
-    public String getEmail() {
-        return email;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
-    }
-
-    public Boolean getActivo() {
-        return activo;
-    }
-
-    public void setActivo(Boolean activo) {
-        this.activo = activo;
-    }
-
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
-    }
-
-    public LocalDateTime getUpdatedAt() {
-        return updatedAt;
-    }
-
-    public void setUpdatedAt(LocalDateTime updatedAt) {
-        this.updatedAt = updatedAt;
-    }
-
-    public String getTipoDocumento() {
-        return tipoDocumento;
-    }
-
-    public void setTipoDocumento(String tipoDocumento) {
-        this.tipoDocumento = tipoDocumento;
-    }
-
-    public Long getUsuarioId() {
-        return usuarioId;
-    }
-
-    public void setUsuarioId(Long usuarioId) {
-        this.usuarioId = usuarioId;
-    }
+    // Conveniencia para acceder al correo directamente
+    public String getCorreo() { return usuario != null ? usuario.getCorreo() : null; }
 }

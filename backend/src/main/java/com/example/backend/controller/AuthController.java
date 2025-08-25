@@ -100,9 +100,9 @@ public class AuthController {
         profesional.setTipoDocumento(request.tipoDocumento());
         profesional.setEspecialidad(request.especialidad());
         profesional.setTelefono(request.telefono());
-        profesional.setEmail(request.correo());
-        profesional.setActivo(false); // 🚨 Se marca inactivo hasta que TI lo apruebe
-        profesional.setUsuarioId(usuario.getId());
+
+// Asignamos el usuario creado al profesional
+        profesional.setUsuario(usuario);
 
         authService.saveProfesional(profesional);
 
