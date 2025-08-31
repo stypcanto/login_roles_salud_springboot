@@ -24,8 +24,6 @@ public class Profesional {
 
     private String colegiatura;
 
-    private String especialidad;
-
     @Column(name = "ipress_id")
     private Integer ipressId;
 
@@ -56,6 +54,15 @@ public class Profesional {
     @Column(name = "fecha_nacimiento")
     private LocalDate fechaNacimiento;
 
+    // ================= Relaciones nuevas =================
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "profesion_id")
+    private DataProfesion profesion;  // referencia a data_profesiones
+
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "especialidad_id")
+    private DataEspecialidad especialidad; // referencia a data_especialidades
+
     // ================= Getters y Setters =================
 
     public Long getId() { return id; }
@@ -71,9 +78,6 @@ public class Profesional {
 
     public String getColegiatura() { return colegiatura; }
     public void setColegiatura(String colegiatura) { this.colegiatura = colegiatura; }
-
-    public String getEspecialidad() { return especialidad; }
-    public void setEspecialidad(String especialidad) { this.especialidad = especialidad; }
 
     public Integer getIpressId() { return ipressId; }
     public void setIpressId(Integer ipressId) { this.ipressId = ipressId; }
@@ -101,6 +105,12 @@ public class Profesional {
 
     public LocalDate getFechaNacimiento() { return fechaNacimiento; }
     public void setFechaNacimiento(LocalDate fechaNacimiento) { this.fechaNacimiento = fechaNacimiento; }
+
+    public DataProfesion getProfesion() { return profesion; }
+    public void setProfesion(DataProfesion profesion) { this.profesion = profesion; }
+
+    public DataEspecialidad getEspecialidad() { return especialidad; }
+    public void setEspecialidad(DataEspecialidad especialidad) { this.especialidad = especialidad; }
 
     // Conveniencia para acceder al correo directamente
     public String getCorreo() { return usuario != null ? usuario.getCorreo() : null; }

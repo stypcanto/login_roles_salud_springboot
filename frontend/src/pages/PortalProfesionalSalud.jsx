@@ -9,6 +9,7 @@ import GestionTerritorial from "./GestionTerritorial";
 const RolesPortal = () => {
     const [selectedSection, setSelectedSection] = useState(null);
     const [userName, setUserName] = useState("Usuario");
+    const [showIframe, setShowIframe] = useState(false); // 🔑 Estado para controlar el modal
 
     useEffect(() => {
         console.log("📌 Ejecutando fetchUserData()...");
@@ -93,6 +94,14 @@ const RolesPortal = () => {
                                     Accede a la información y herramientas que necesitas. Por favor,
                                     selecciona una opción del menú para comenzar.
                                 </p>
+
+                                {/* ✅ Botón central */}
+                                <button
+                                    onClick={() => setShowIframe(true)}
+                                    className="mt-6 px-6 py-3 bg-[#1d4f8a] text-white font-bold rounded-2xl shadow-lg hover:bg-[#163a66] transition"
+                                >
+                                    Ver Reporte Power BI
+                                </button>
                             </div>
                         </>
                     ) : (
@@ -113,6 +122,30 @@ const RolesPortal = () => {
 
             {/* ✅ Footer */}
             <Footer_azul />
+
+            {/* 🔑 Modal con el iframe */}
+            {showIframe && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-70">
+                    <div className="relative bg-white rounded-2xl shadow-lg w-[90%] h-[85%] flex flex-col">
+                        {/* Botón cerrar */}
+                        <button
+                            onClick={() => setShowIframe(false)}
+                            className="absolute top-3 right-3 bg-red-500 text-white px-3 py-1 rounded-lg hover:bg-red-700"
+                        >
+                            ✖
+                        </button>
+
+                        {/* Iframe */}
+                        <iframe
+                            title="BI_Crónicos"
+                            src="https://app.powerbi.com/view?r=eyJrIjoiZGEyZTcxYTgtOGMxZS00Y2NhLWFiZGYtYzJlM2U0MDU1NGYxIiwidCI6IjM0ZjMyNDE5LTFjMDUtNDc1Ni04OTZlLTQ1ZDYzMzcyNjU5YiIsImMiOjR9"
+                            className="w-full h-full rounded-b-2xl"
+                            frameBorder="0"
+                            allowFullScreen={true}
+                        ></iframe>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

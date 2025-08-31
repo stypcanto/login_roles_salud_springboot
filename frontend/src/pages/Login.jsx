@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import api from "../config/api.js";
+import { ROLES } from "../app/App.jsx"; // 🔹 Importamos los roles centralizados
 
 const Login = () => {
   const [correo, setCorreo] = useState("");
@@ -11,11 +12,12 @@ const Login = () => {
 
   // Mapa de roles a rutas
   const roleRoutes = {
-    Superadmin: "/admin-panel",
-    Administrador: "/admin-panel",
-    "Coordinador Medico": "/coordinador-especialidades",
-    Medico: "/portal-medico",
-    "Coordinador Admision": "/gestion-territorial",
+    [ROLES.SUPERADMIN]: "/admin-panel",
+    [ROLES.ADMINISTRADOR]: "/admin-panel",
+    [ROLES.COORD_MEDICO]: "/coordinador-especialidades",
+    [ROLES.MEDICO]: "/portal-profesional-salud",
+    [ROLES.COORD_ADMISION]: "/gestion-territorial",
+    [ROLES.PROFESIONAL_SALUD]: "/portal-profesional-salud",
   };
 
   const handleLogin = async (e) => {
@@ -42,27 +44,30 @@ const Login = () => {
         return;
       }
 
+      // Normalizamos roles (ej: "Coordinador Medico" -> "COORDINADOR MEDICO")
+      const userRoles = (roles || []).map((r) => r.nombre?.toUpperCase());
+
       // Guardamos datos completos en localStorage
       const user = {
         id: profesional?.id,
         nombres: profesional?.nombres,
         apellidos: profesional?.apellidos,
         correo: profesional?.correoUsuario,
-        roles: roles.map(r => r.nombre), // array de roles
-        activo: profesional?.activoUsuario
+        roles: userRoles,
+        activo: profesional?.activoUsuario,
       };
 
       localStorage.setItem("token", token);
       localStorage.setItem("user", JSON.stringify(user));
 
       // Redirección según rol principal
-      const rolPrincipal = roles[0]?.nombre;
+      const rolPrincipal = userRoles[0];
       const ruta = roleRoutes[rolPrincipal] || "/";
       navigate(ruta);
 
     } catch (err) {
       console.error("Error de conexión:", err);
-      if (err.response) setError(err.response.data || "Credenciales incorrectas");
+      if (err.response) setError(err.response.data?.message || "Credenciales incorrectas");
       else if (err.request) setError("No se pudo conectar con el servidor");
       else setError("Ocurrió un error inesperado");
     } finally {

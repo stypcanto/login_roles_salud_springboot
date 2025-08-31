@@ -1,16 +1,24 @@
-# Dockerfile para backend en producción
 # Etapa de build
 FROM maven:3.9.6-eclipse-temurin-17 AS build
 WORKDIR /app
-COPY . .
+
+# Copia dependencias primero para cache
+COPY pom.xml ./
+RUN mvn dependency:go-offline
+
+# Copia código y genera el JAR
+COPY src ./src
 RUN mvn clean package -DskipTests
 
 # Etapa de producción
 FROM eclipse-temurin:17-jdk
 WORKDIR /app
+
+# Copia JAR generado
 COPY --from=build /app/target/*.jar app.jar
 
-ENV SPRING_PROFILES_ACTIVE=prod
+# Perfil activo desde environment
+ENV SPRING_PROFILES_ACTIVE=${ENVIRONMENT}
 
 EXPOSE 8080
 ENTRYPOINT ["java", "-jar", "app.jar"]

@@ -2,9 +2,13 @@ package com.example.backend.controller;
 
 import com.example.backend.dto.ProfesionalCreateDTO;
 import com.example.backend.dto.ProfesionalDTO;
+import com.example.backend.entity.DataEspecialidad;
+import com.example.backend.entity.DataProfesion;
 import com.example.backend.entity.Profesional;
 import com.example.backend.entity.Rol;
 import com.example.backend.entity.User;
+import com.example.backend.repository.DataEspecialidadRepository;
+import com.example.backend.repository.DataProfesionRepository;
 import com.example.backend.repository.ProfesionalRepository;
 import com.example.backend.repository.RolRepository;
 import com.example.backend.repository.UserRepository;
@@ -17,14 +21,13 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 /**
- * Controlador REST para profesionales.
+ * Controlador REST para gestionar profesionales.
  *
- * Buenas prácticas implementadas:
- * - Separación clara: tabla Profesional independiente de Usuario.
+ * Buenas prácticas:
+ * - Profesional vinculado a Usuario, Profesion y Especialidad.
  * - Validación de usuario existente y activo antes de asignarlo.
  * - Asignación automática del rol "Profesional" si el usuario no lo tiene.
- * - Uso de DTO combinado (ProfesionalDTO) para simplificar frontend.
- * - Método auxiliar para centralizar la lógica de asignación usuario-rol.
+ * - Uso de DTOs para separar la entidad de la representación en frontend.
  */
 @RestController
 @RequestMapping("/api/profesionales")
@@ -33,19 +36,25 @@ public class ProfesionalController {
     private final ProfesionalRepository profesionalRepository;
     private final UserRepository userRepository;
     private final RolRepository rolRepository;
+    private final DataProfesionRepository profesionRepository;
+    private final DataEspecialidadRepository especialidadRepository;
 
     public ProfesionalController(ProfesionalRepository profesionalRepository,
                                  UserRepository userRepository,
-                                 RolRepository rolRepository) {
+                                 RolRepository rolRepository,
+                                 DataProfesionRepository profesionRepository,
+                                 DataEspecialidadRepository especialidadRepository) {
         this.profesionalRepository = profesionalRepository;
         this.userRepository = userRepository;
         this.rolRepository = rolRepository;
+        this.profesionRepository = profesionRepository;
+        this.especialidadRepository = especialidadRepository;
     }
 
     // ===================== GET TODOS =====================
     @GetMapping
     public ResponseEntity<List<ProfesionalDTO>> getAllProfesionales() {
-        // Mapear todas las entidades Profesional a DTOs
+        // Mapear todas las entidades Profesional a DTOs para frontend
         List<ProfesionalDTO> profesionales = profesionalRepository.findAll()
                 .stream()
                 .map(this::mapToDTO)
@@ -57,14 +66,14 @@ public class ProfesionalController {
     @GetMapping("/{id}")
     public ResponseEntity<ProfesionalDTO> getProfesionalById(@PathVariable Long id) {
         return profesionalRepository.findById(id)
-                .map(this::mapToDTO) // Reutilizamos método de mapeo
+                .map(this::mapToDTO)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
 
     // ===================== POST =====================
     @PostMapping
-    @Transactional // Asegura que operaciones sobre usuario y profesional sean atómicas
+    @Transactional // Asegura atomicidad entre usuario y profesional
     public ResponseEntity<ProfesionalDTO> createProfesional(
             @Valid @RequestBody ProfesionalCreateDTO dto) {
 
@@ -75,11 +84,22 @@ public class ProfesionalController {
         profesional.setNumeroDocumento(dto.numeroDocumento());
         profesional.setRne(dto.rne());
         profesional.setColegiatura(dto.colegiatura());
-        profesional.setEspecialidad(dto.especialidad());
         profesional.setTelefono(dto.telefono());
         profesional.setFechaNacimiento(dto.fechaNacimiento());
 
-        // Asignación de usuario y rol “Profesional”
+        // ===================== ASIGNAR PROFESION =====================
+        DataProfesion profesion = profesionRepository.findById(dto.profesionId())
+                .orElseThrow(() -> new IllegalArgumentException("Profesion no encontrada"));
+        profesional.setProfesion(profesion);
+
+        // ===================== ASIGNAR ESPECIALIDAD =====================
+        if (dto.especialidadId() != null) {
+            DataEspecialidad especialidad = especialidadRepository.findById(dto.especialidadId())
+                    .orElseThrow(() -> new IllegalArgumentException("Especialidad no encontrada"));
+            profesional.setEspecialidad(especialidad);
+        }
+
+        // ===================== ASIGNAR USUARIO Y ROL =====================
         asignarUsuarioYRol(profesional, dto.correoUsuario());
 
         Profesional saved = profesionalRepository.save(profesional);
@@ -95,15 +115,23 @@ public class ProfesionalController {
 
         return profesionalRepository.findById(id)
                 .map(profesional -> {
+                    // Campos editables
                     profesional.setNombres(dto.nombres());
                     profesional.setApellidos(dto.apellidos());
-                    profesional.setTipoDocumento(dto.tipoDocumento());
-                    profesional.setNumeroDocumento(dto.numeroDocumento());
                     profesional.setRne(dto.rne());
                     profesional.setColegiatura(dto.colegiatura());
-                    profesional.setEspecialidad(dto.especialidad());
                     profesional.setTelefono(dto.telefono());
-                    profesional.setFechaNacimiento(dto.fechaNacimiento());
+
+                    // Actualizar profesion y especialidad si vienen IDs
+                    DataProfesion profesion = profesionRepository.findById(dto.profesionId())
+                            .orElseThrow(() -> new IllegalArgumentException("Profesion no encontrada"));
+                    profesional.setProfesion(profesion);
+
+                    if (dto.especialidadId() != null) {
+                        DataEspecialidad especialidad = especialidadRepository.findById(dto.especialidadId())
+                                .orElseThrow(() -> new IllegalArgumentException("Especialidad no encontrada"));
+                        profesional.setEspecialidad(especialidad);
+                    }
 
                     // Asignación de usuario y rol “Profesional”
                     asignarUsuarioYRol(profesional, dto.correoUsuario());
@@ -138,7 +166,7 @@ public class ProfesionalController {
                 p.getNumeroDocumento(),
                 p.getRne(),
                 p.getColegiatura(),
-                p.getEspecialidad(),
+                p.getEspecialidad() != null ? p.getEspecialidad().getNombre() : null,
                 p.getTelefono(),
                 p.getFechaNacimiento(),
                 p.getUsuario() != null ? p.getUsuario().getCorreo() : null,
@@ -152,8 +180,6 @@ public class ProfesionalController {
 
     /**
      * Asigna un usuario existente a un profesional y se asegura de que tenga el rol "Profesional".
-     * @param profesional Profesional a asignar.
-     * @param correoUsuario Correo del usuario existente.
      */
     private void asignarUsuarioYRol(Profesional profesional, String correoUsuario) {
         if (correoUsuario == null) return;
@@ -174,7 +200,7 @@ public class ProfesionalController {
             Rol rolProfesional = rolRepository.findByNombre("Profesional")
                     .orElseThrow(() -> new IllegalStateException("No existe el rol Profesional"));
             user.getRoles().add(rolProfesional);
-            userRepository.save(user); // Guardamos cambios en usuario
+            userRepository.save(user);
         }
 
         profesional.setUsuario(user); // Finalmente vinculamos usuario al profesional

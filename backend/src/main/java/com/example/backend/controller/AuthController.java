@@ -98,7 +98,6 @@ public class AuthController {
         profesional.setApellidos(request.apellidos());
         profesional.setDocumento(request.documento());
         profesional.setTipoDocumento(request.tipoDocumento());
-        profesional.setEspecialidad(request.especialidad());
         profesional.setTelefono(request.telefono());
 
 // Asignamos el usuario creado al profesional
@@ -133,7 +132,6 @@ public class AuthController {
             @NotBlank String apellidos,
             @NotBlank String tipoDocumento,
             @NotBlank String documento,
-            String especialidad,
             String telefono
     ) {}
 

@@ -1,26 +1,33 @@
+version: "3.9"
+
 services:
-  # 🌐 FRONTEND - React + Vite (Producción)
+  # 🌐 FRONTEND - React + Vite (Desarrollo)
   frontend:
     build:
       context: ./frontend
-      dockerfile: Dockerfile.prod
+      dockerfile: Dockerfile.dev
       args:
-        VITE_API_URL: ${VITE_API_URL}  # 👈 debe venir de tu .env.production
+        VITE_API_URL: http://backend:8080/api
     ports:
-      - "80:80"
+      - "5173:5173"
     networks:
       - app-network
     restart: unless-stopped
     depends_on:
       - backend
+    volumes:
+      - ./frontend/src:/app/src
+      - ./frontend/public:/app/public
+      - /app/node_modules
+    command: sh -c "npm install && npm run dev -- --host 0.0.0.0"
 
-  # ☕ BACKEND - Spring Boot (Producción)
+  # ☕ BACKEND - Spring Boot (Desarrollo)
   backend:
     build:
       context: ./backend
-      dockerfile: Dockerfile.prod
+      dockerfile: Dockerfile.dev
     environment:
-      SPRING_PROFILES_ACTIVE: ${ENVIRONMENT}  # production
+      SPRING_PROFILES_ACTIVE: ${ENVIRONMENT}
       SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/${POSTGRES_DB}
       SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER}
       SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
@@ -33,6 +40,9 @@ services:
     depends_on:
       db:
         condition: service_healthy
+    volumes:
+      - ./backend/src:/app/src
+      - ./backend/target:/app/target
 
   # 🐘 PostgreSQL
   db:

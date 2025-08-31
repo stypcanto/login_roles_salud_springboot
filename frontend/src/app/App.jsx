@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 
 // ==================== PÁGINAS PÚBLICAS ====================
 import Login from "../pages/Login.jsx";
@@ -13,17 +13,19 @@ import Admin from "../pages/Admin.jsx";
 import CoordinadorEspecialidades from "../pages/CoordinadorEspecialidades.jsx";
 import PortalMedico from "../pages/PortalMedico.jsx";
 import GestionTerritorial from "../pages/GestionTerritorial.jsx";
+import PortalProfesionalSalud from "../pages/PortalProfesionalSalud.jsx";
 
 // ==================== RUTAS PRIVADAS ====================
 import PrivateRoute from "../components/Routes/PrivateRoute.jsx";
 
-// Roles centralizados
-const ROLES = {
-    SUPERADMIN: "Superadmin",
-    ADMINISTRADOR: "Administrador",
-    COORD_MEDICO: "Coordinador Medico",
-    MEDICO: "Medico",
-    COORD_ADMISION: "Coordinador Admision",
+// Roles centralizados (estandarizados en mayúsculas, sin tildes ni espacios dobles)
+export const ROLES = {
+    SUPERADMIN: "SUPERADMIN",
+    ADMINISTRADOR: "ADMINISTRADOR",
+    COORD_MEDICO: "COORD_MEDICO",
+    MEDICO: "MEDICO",
+    COORD_ADMISION: "COORD_ADMISION",
+    PROFESIONAL_SALUD: "PROFESIONAL_SALUD",
 };
 
 function App() {
@@ -33,13 +35,15 @@ function App() {
 
                 {/* ==================== RUTAS PÚBLICAS ==================== */}
                 <Route path="/" element={<Login />} />
-                <Route path="/admin" element={<Login />} /> {/* Alias de login */}
+                {/* Alias de login → redirige al panel admin */}
+                <Route path="/admin" element={<Navigate to="/admin-panel" replace />} />
                 <Route path="/registro" element={<Registro />} />
                 <Route path="/forgot-password" element={<ForgotPassword />} />
                 <Route path="/reset-password" element={<ResetPassword />} />
                 <Route path="/test-ping" element={<TestPing />} />
 
                 {/* ==================== RUTAS PRIVADAS ==================== */}
+
                 {/* Panel Admin */}
                 <Route
                     path="/admin-panel"
@@ -66,6 +70,16 @@ function App() {
                     element={
                         <PrivateRoute allowedRoles={[ROLES.MEDICO]}>
                             <PortalMedico />
+                        </PrivateRoute>
+                    }
+                />
+
+                {/* Portal Profesional de Salud */}
+                <Route
+                    path="/portal-profesional-salud"
+                    element={
+                        <PrivateRoute allowedRoles={[ROLES.PROFESIONAL_SALUD]}>
+                            <PortalProfesionalSalud />
                         </PrivateRoute>
                     }
                 />

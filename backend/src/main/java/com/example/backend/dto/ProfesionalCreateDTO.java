@@ -2,6 +2,10 @@ package com.example.backend.dto;
 
 import java.time.LocalDate;
 
+/**
+ * DTO para crear o actualizar un profesional.
+ * Incluye referencias por ID a Profesion y Especialidad.
+ */
 public record ProfesionalCreateDTO(
         String nombres,
         String apellidos,
@@ -9,8 +13,10 @@ public record ProfesionalCreateDTO(
         String numeroDocumento,
         String rne,
         String colegiatura,
-        String especialidad,
+        Long profesionId,        // referencia a DataProfesion
+        Long especialidadId,     // referencia a DataEspecialidad (opcional)
         String telefono,
         LocalDate fechaNacimiento,
-        String correoUsuario // para asociar al usuario existente
+        String correoUsuario     // para asociar al usuario existente
 ) {}
+
