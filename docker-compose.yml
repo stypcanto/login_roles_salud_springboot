@@ -5,7 +5,7 @@ services:
       context: ./frontend
       dockerfile: Dockerfile.prod
       args:
-        VITE_API_URL: ${VITE_API_URL}  # 👈 debe venir de tu .env.production
+        VITE_API_URL: ${VITE_API_URL}
     ports:
       - "80:80"
     networks:
@@ -20,7 +20,7 @@ services:
       context: ./backend
       dockerfile: Dockerfile.prod
     environment:
-      SPRING_PROFILES_ACTIVE: ${ENVIRONMENT}  # production
+      SPRING_PROFILES_ACTIVE: ${ENVIRONMENT}
       SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/${POSTGRES_DB}
       SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER}
       SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
@@ -42,7 +42,7 @@ services:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     volumes:
-      - pgdata:/var/lib/postgresql/data
+      - 3proyecto_login_springboot_pgdata:/var/lib/postgresql/data
     ports:
       - "5432:5432"
     networks:
@@ -55,7 +55,7 @@ services:
       retries: 5
 
 volumes:
-  pgdata:
+  3proyecto_login_springboot_pgdata:
 
 networks:
   app-network:

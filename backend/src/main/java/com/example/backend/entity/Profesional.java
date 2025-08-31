@@ -1,11 +1,17 @@
 package com.example.backend.entity;
 
 import jakarta.persistence.*;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.AllArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
+import java.time.LocalDateTime;
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
 @Entity
 @Table(name = "profesionales")
 public class Profesional {
@@ -14,104 +20,34 @@ public class Profesional {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @OneToOne(optional = false, cascade = CascadeType.ALL)
+    @JoinColumn(name = "usuario_id", nullable = false)
+    private Usuario usuario;
+
     @Column(nullable = false)
     private String nombres;
 
     @Column(nullable = false)
     private String apellidos;
 
+    @Column(name = "tipo_documento", nullable = false)
+    private String tipoDocumento;
+
+    @Column(nullable = false, unique = true)
     private String documento;
-
-    private String colegiatura;
-
-    @Column(name = "ipress_id")
-    private Integer ipressId;
 
     private String telefono;
 
+    @ManyToOne
+    @JoinColumn(name = "especialidad_id")
+    private DataEspecialidad especialidad;
+
+    private String colegiatura;
+
     @CreationTimestamp
-    @Column(name = "created_at", updatable = false)
+    @Column(updatable = false)
     private LocalDateTime createdAt;
 
     @UpdateTimestamp
-    @Column(name = "updated_at")
     private LocalDateTime updatedAt;
-
-    // Nuevos campos para documentos y RNE
-    @Column(name = "tipo_documento")
-    private String tipoDocumento;   // DNI o C.Extranjería
-
-    @Column(name = "numero_documento")
-    private String numeroDocumento;
-
-    @Column(name = "rne")
-    private String rne;             // solo para médicos especialistas
-
-    @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "usuario_id")
-    private User usuario;
-
-    @Column(name = "fecha_nacimiento")
-    private LocalDate fechaNacimiento;
-
-    // ================= Relaciones nuevas =================
-    @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "profesion_id")
-    private DataProfesion profesion;  // referencia a data_profesiones
-
-    @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "especialidad_id")
-    private DataEspecialidad especialidad; // referencia a data_especialidades
-
-    // ================= Getters y Setters =================
-
-    public Long getId() { return id; }
-
-    public String getNombres() { return nombres; }
-    public void setNombres(String nombres) { this.nombres = nombres; }
-
-    public String getApellidos() { return apellidos; }
-    public void setApellidos(String apellidos) { this.apellidos = apellidos; }
-
-    public String getDocumento() { return documento; }
-    public void setDocumento(String documento) { this.documento = documento; }
-
-    public String getColegiatura() { return colegiatura; }
-    public void setColegiatura(String colegiatura) { this.colegiatura = colegiatura; }
-
-    public Integer getIpressId() { return ipressId; }
-    public void setIpressId(Integer ipressId) { this.ipressId = ipressId; }
-
-    public String getTelefono() { return telefono; }
-    public void setTelefono(String telefono) { this.telefono = telefono; }
-
-    public LocalDateTime getCreatedAt() { return createdAt; }
-    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
-
-    public LocalDateTime getUpdatedAt() { return updatedAt; }
-    public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
-
-    public String getTipoDocumento() { return tipoDocumento; }
-    public void setTipoDocumento(String tipoDocumento) { this.tipoDocumento = tipoDocumento; }
-
-    public String getNumeroDocumento() { return numeroDocumento; }
-    public void setNumeroDocumento(String numeroDocumento) { this.numeroDocumento = numeroDocumento; }
-
-    public String getRne() { return rne; }
-    public void setRne(String rne) { this.rne = rne; }
-
-    public User getUsuario() { return usuario; }
-    public void setUsuario(User usuario) { this.usuario = usuario; }
-
-    public LocalDate getFechaNacimiento() { return fechaNacimiento; }
-    public void setFechaNacimiento(LocalDate fechaNacimiento) { this.fechaNacimiento = fechaNacimiento; }
-
-    public DataProfesion getProfesion() { return profesion; }
-    public void setProfesion(DataProfesion profesion) { this.profesion = profesion; }
-
-    public DataEspecialidad getEspecialidad() { return especialidad; }
-    public void setEspecialidad(DataEspecialidad especialidad) { this.especialidad = especialidad; }
-
-    // Conveniencia para acceder al correo directamente
-    public String getCorreo() { return usuario != null ? usuario.getCorreo() : null; }
 }

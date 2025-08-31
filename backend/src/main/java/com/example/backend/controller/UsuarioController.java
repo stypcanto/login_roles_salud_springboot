@@ -1,9 +1,9 @@
 package com.example.backend.controller;
 
 import com.example.backend.entity.Rol;
-import com.example.backend.entity.User;
+import com.example.backend.entity.Usuario;
 import com.example.backend.repository.RolRepository;
-import com.example.backend.repository.UserRepository;
+import com.example.backend.repository.UsuarioRepository;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -17,11 +17,11 @@ import java.util.stream.Collectors;
 @RequestMapping("/api/usuarios")
 public class UsuarioController {
 
-    private final UserRepository userRepository;
+    private final UsuarioRepository usuarioRepository;
     private final RolRepository rolRepository;
 
-    public UsuarioController(UserRepository userRepository, RolRepository rolRepository) {
-        this.userRepository = userRepository;
+    public UsuarioController(UsuarioRepository usuarioRepository, RolRepository rolRepository) {
+        this.usuarioRepository = usuarioRepository;
         this.rolRepository = rolRepository;
     }
 
@@ -30,17 +30,17 @@ public class UsuarioController {
      */
     @GetMapping
     public ResponseEntity<List<UsuarioDTO>> getAllUsuarios() {
-        List<User> users = userRepository.findAll();
+        List<Usuario> usuariosList = usuarioRepository.findAll();
 
-        List<UsuarioDTO> usuarios = users.stream().map(user -> {
-            // Obtener roles del usuario
-            List<Rol> roles = rolRepository.findRolesByUsuarioId(user.getId());
-            String rolNombre = roles.isEmpty() ? "" : roles.get(0).getNombre(); // tomamos el primero si hay más
+        List<UsuarioDTO> usuarios = usuariosList.stream().map(usuario -> {
+            // Obtener roles del usuario usando el método corregido
+            List<Rol> roles = rolRepository.findByUsuarios_Id(usuario.getId());
+            String rolNombre = roles.isEmpty() ? "" : roles.get(0).getNombre();
 
             return new UsuarioDTO(
-                    user.getId(),
-                    user.getCorreo(),
-                    user.isActivo(),
+                    usuario.getId(),
+                    usuario.getCorreo(),
+                    usuario.isActivo(),
                     rolNombre
             );
         }).collect(Collectors.toList());

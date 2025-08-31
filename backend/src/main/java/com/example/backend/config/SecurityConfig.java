@@ -41,14 +41,15 @@ public class SecurityConfig {
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/health").permitAll()
-                        .requestMatchers("/auth/**").permitAll()
-                        .requestMatchers("/public/**").permitAll()
-                        .requestMatchers("/api/**").permitAll()   // <--- Agregado para pruebas
-                        .anyRequest().authenticated())
+                        .requestMatchers(
+                                "/api/auth/**",   // <-- corregido
+                                "/health",
+                                "/public/**"
+                        ).permitAll()
+                        .anyRequest().authenticated()
+                )
                 .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authenticationProvider(authenticationProvider())
-                // El filtro JWT se ejecuta antes del UsernamePasswordAuthenticationFilter
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
@@ -75,15 +76,13 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        // Permitir solicitudes desde el frontend (ajusta según tu dominio)
         config.setAllowedOrigins(List.of(
-                "http://localhost",       // Nginx en Docker
-                "http://localhost:5173"   // Vite dev
+                "http://localhost",
+                "http://localhost:5173",
+                "http://frontend"
         ));
-        // config.setAllowedOrigins(List.of("https://miapp.com"));
-        // Con este link pasa producción
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-        config.setAllowedHeaders(List.of("*")); // Permitir cualquier cabecera
+        config.setAllowedHeaders(List.of("*"));
         config.setAllowCredentials(true);
         config.setMaxAge(3600L);
 
@@ -91,5 +90,4 @@ public class SecurityConfig {
         source.registerCorsConfiguration("/**", config);
         return source;
     }
-
 }

@@ -3,11 +3,13 @@ package com.example.backend.entity;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.AllArgsConstructor;
 
 import java.time.LocalDateTime;
 
 @Data
 @NoArgsConstructor
+@AllArgsConstructor
 @Entity
 @Table(name = "password_reset_token")
 public class PasswordResetToken {
@@ -22,13 +24,14 @@ public class PasswordResetToken {
     @Column(nullable = false)
     private LocalDateTime expiration;
 
-    @OneToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "user_id", nullable = false)
-    private User user;
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "usuario_id", nullable = false)
+    private Usuario usuario;
 
-    public PasswordResetToken(String token, User user) {
+    // Constructor personalizado para generar token con expiración
+    public PasswordResetToken(String token, Usuario usuario) {
         this.token = token;
-        this.user = user;
+        this.usuario = usuario;
         this.expiration = LocalDateTime.now().plusHours(1);
     }
 }

@@ -1,6 +1,7 @@
 package com.example.backend.controller;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,7 +14,7 @@ import org.springframework.web.bind.annotation.*;
 
 import com.example.backend.entity.Profesional;
 import com.example.backend.entity.Rol;
-import com.example.backend.entity.User;
+import com.example.backend.entity.Usuario;
 import com.example.backend.security.JwtUtil;
 import com.example.backend.service.AuthService;
 import com.example.backend.service.PasswordResetService;
@@ -23,7 +24,7 @@ import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 
 @RestController
-@RequestMapping("/auth")
+@RequestMapping("/api/auth")
 public class AuthController {
 
     private static final Logger logger = LoggerFactory.getLogger(AuthController.class);
@@ -45,35 +46,40 @@ public class AuthController {
 
     @GetMapping("/ping")
     public ResponseEntity<String> ping() {
-        logger.info("🎏 Ping recibido en /auth/ping");
+        logger.info("🎏 Ping recibido en /api/auth/ping");
         return ResponseEntity.ok("Pong");
     }
 
+    // ================= LOGIN =================
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest request) {
         try {
-            // Autenticación con Spring Security
             authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(request.correo(), request.contrasena())
             );
 
-            User usuario = authService.findByCorreo(request.correo());
+            Usuario usuario = authService.findByCorreo(request.correo());
 
-            // 🔒 Verificación del campo activo
-            // Si el usuario no está activo, aunque pase la autenticación, se bloquea el acceso
             if (!usuario.isActivo()) {
                 return ResponseEntity.status(HttpStatus.FORBIDDEN)
                         .body("Usuario pendiente de aprobación por el área TI");
             }
 
-            // Generar el token JWT
-            String token = jwtUtil.generateToken(request.correo());
+            String token = jwtUtil.generateToken(usuario.getCorreo());
 
-            // Cargar roles y profesional asociados
             List<Rol> roles = authService.getRoles(usuario.getId());
+            List<String> permisos = roles.stream()
+                    .flatMap(r -> r.getPermisos().stream())
+                    .map(p -> p.getNombre())
+                    .distinct()
+                    .collect(Collectors.toList());
+
             Profesional profesional = authService.getProfesionalByUsuarioId(usuario.getId());
 
-            return ResponseEntity.ok(new JwtLoginResponse(token, roles, profesional));
+            return ResponseEntity.ok(new JwtLoginResponse(token,
+                    roles.stream().map(Rol::getNombre).toList(),
+                    permisos,
+                    profesional));
 
         } catch (AuthenticationException e) {
             logger.warn("❌ Fallo de login: credenciales inválidas");
@@ -84,31 +90,31 @@ public class AuthController {
         }
     }
 
+    // ================= REGISTRO =================
     @PostMapping("/register")
     public ResponseEntity<?> register(@RequestBody RegisterRequest request) {
-        User usuario = authService.registerAndReturnUser(request.correo(), request.contrasena());
+        Usuario usuario = authService.registerAndReturnUser(request.correo(), request.contrasena());
 
         if (usuario == null) {
             return ResponseEntity.badRequest().body("El usuario ya existe.");
         }
 
-        // Se crea el profesional asociado
         Profesional profesional = new Profesional();
+        profesional.setUsuario(usuario);
         profesional.setNombres(request.nombres());
         profesional.setApellidos(request.apellidos());
         profesional.setDocumento(request.documento());
         profesional.setTipoDocumento(request.tipoDocumento());
         profesional.setTelefono(request.telefono());
 
-// Asignamos el usuario creado al profesional
-        profesional.setUsuario(usuario);
-
         authService.saveProfesional(profesional);
+
+        authService.assignRole(usuario.getId(), "COORDINADOR_MEDICO");
 
         return ResponseEntity.ok("Usuario registrado correctamente. Pendiente de aprobación por el área TI.");
     }
 
-
+    // ================= RECUPERACIÓN DE CONTRASEÑA =================
     @PostMapping("/forgot-password")
     public ResponseEntity<String> forgotPassword(@RequestBody @Valid ForgotPasswordRequest request) {
         logger.info("🔔 Recuperación de contraseña para: {}", request.correo());
@@ -124,7 +130,6 @@ public class AuthController {
     }
 
     // ================= DTOs =================
-
     public record RegisterRequest(
             @NotBlank @Email String correo,
             @NotBlank String contrasena,
@@ -149,11 +154,11 @@ public class AuthController {
             @NotBlank String newPassword
     ) {}
 
-    // ================= Respuestas =================
-
+    // ================= RESPUESTA =================
     public record JwtLoginResponse(
             String token,
-            List<Rol> roles,
+            List<String> roles,
+            List<String> permisos,
             Profesional profesional
     ) {}
 }

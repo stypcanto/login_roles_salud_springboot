@@ -1,9 +1,9 @@
 package com.example.backend.service;
 
 import com.example.backend.entity.PasswordResetToken;
-import com.example.backend.entity.User;
+import com.example.backend.entity.Usuario;
 import com.example.backend.repository.PasswordResetTokenRepository;
-import com.example.backend.repository.UserRepository;
+import com.example.backend.repository.UsuarioRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -19,11 +19,11 @@ public class PasswordResetService {
 
     private static final Logger logger = LoggerFactory.getLogger(PasswordResetService.class);
 
-    private final UserRepository userRepository;
+    private final UsuarioRepository userRepository;
     private final PasswordResetTokenRepository tokenRepository;
     private final PasswordEncoder passwordEncoder;
 
-    public PasswordResetService(UserRepository userRepository,
+    public PasswordResetService(UsuarioRepository userRepository,
                                 PasswordResetTokenRepository tokenRepository,
                                 PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
@@ -33,16 +33,16 @@ public class PasswordResetService {
 
     @Transactional
     public String sendPasswordResetToken(String correo) {
-        Optional<User> userOptional = userRepository.findByCorreo(correo);
+        Optional<Usuario> userOptional = userRepository.findByCorreo(correo);
 
         if (userOptional.isEmpty()) {
             logger.warn("❌ Usuario no encontrado: {}", correo);
             throw new RuntimeException("Usuario no encontrado");
         }
 
-        User user = userOptional.get();
+        Usuario user = userOptional.get();
 
-        tokenRepository.deleteByUser(user);
+        tokenRepository.deleteByUsuario(user);
         logger.info("🧹 Tokens anteriores eliminados para: {}", correo);
 
         String tokenString = UUID.randomUUID().toString();
@@ -73,7 +73,7 @@ public class PasswordResetService {
             return "Token expirado.";
         }
 
-        User user = resetToken.getUser();
+        Usuario user = resetToken.getUsuario();
 
         user.setContrasena(passwordEncoder.encode(newPassword));
         userRepository.save(user);

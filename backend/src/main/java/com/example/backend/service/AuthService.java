@@ -1,81 +1,78 @@
 package com.example.backend.service;
 
 import java.util.List;
+import java.util.Optional;
 
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.example.backend.entity.Profesional;
 import com.example.backend.entity.Rol;
-import com.example.backend.entity.User;
+import com.example.backend.entity.Usuario;
 import com.example.backend.repository.ProfesionalRepository;
 import com.example.backend.repository.RolRepository;
-import com.example.backend.repository.UserRepository;
+import com.example.backend.repository.UsuarioRepository;
 
 @Service
 @Transactional
 public class AuthService {
 
-    private final AuthenticationManager authenticationManager;
-    private final PasswordEncoder passwordEncoder;
-    private final UserRepository userRepository;
-    private final ProfesionalRepository profesionalRepository;
+    private final UsuarioRepository usuarioRepository;
     private final RolRepository rolRepository;
+    private final ProfesionalRepository profesionalRepository;
+    private final PasswordEncoder passwordEncoder;
 
-    public AuthService(AuthenticationManager authenticationManager,
-                       PasswordEncoder passwordEncoder,
-                       UserRepository userRepository,
+    public AuthService(UsuarioRepository usuarioRepository,
+                       RolRepository rolRepository,
                        ProfesionalRepository profesionalRepository,
-                       RolRepository rolRepository) {
-        this.authenticationManager = authenticationManager;
-        this.passwordEncoder = passwordEncoder;
-        this.userRepository = userRepository;
-        this.profesionalRepository = profesionalRepository;
+                       PasswordEncoder passwordEncoder) {
+        this.usuarioRepository = usuarioRepository;
         this.rolRepository = rolRepository;
+        this.profesionalRepository = profesionalRepository;
+        this.passwordEncoder = passwordEncoder;
     }
 
-    // ==================== Autenticación ====================
-    public void authenticate(String correo, String contrasena) {
-        try {
-            authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(correo, contrasena)
-            );
-        } catch (AuthenticationException e) {
-            throw new RuntimeException("Credenciales inválidas");
-        }
-    }
-
-    // ==================== Registro de usuarios ====================
-    public User registerAndReturnUser(String correo, String contrasena) {
-        if (userRepository.findByCorreo(correo).isPresent()) {
-            return null; // Usuario ya existe
-        }
-        User nuevoUsuario = new User();
-        nuevoUsuario.setCorreo(correo);
-        nuevoUsuario.setContrasena(passwordEncoder.encode(contrasena));
-        return userRepository.save(nuevoUsuario);
-    }
-
-    public User findByCorreo(String correo) {
-        return userRepository.findByCorreo(correo).orElse(null);
-    }
-
-    public List<Rol> getRoles(Long usuarioId) {
-        User user = userRepository.findById(usuarioId).orElse(null);
-        return user != null ? List.copyOf(user.getRoles()) : List.of();
-    }
-
-    // ==================== Profesionales ====================
-    public Profesional saveProfesional(Profesional profesional) {
-        return profesionalRepository.save(profesional);
+    public Usuario findByCorreo(String correo) {
+        return usuarioRepository.findByCorreo(correo)
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
     }
 
     public Profesional getProfesionalByUsuarioId(Long usuarioId) {
-        return profesionalRepository.findByUsuarioId(usuarioId).orElse(null);
+        Usuario usuario = findById(usuarioId);
+        return profesionalRepository.findByUsuario(usuario).orElse(null);
     }
 
+    public List<Rol> getRoles(Long usuarioId) {
+        Usuario usuario = findById(usuarioId);
+        return List.copyOf(usuario.getRoles());
+    }
+
+    public void saveProfesional(Profesional profesional) {
+        profesionalRepository.save(profesional);
+    }
+
+    public void assignRole(Long usuarioId, String rolNombre) {
+        Usuario usuario = findById(usuarioId);
+        Rol rol = rolRepository.findByNombre(rolNombre)
+                .orElseThrow(() -> new RuntimeException("Rol no encontrado"));
+        usuario.getRoles().add(rol);
+        usuarioRepository.save(usuario);
+    }
+
+    public Usuario registerAndReturnUser(String correo, String contrasena) {
+        Optional<Usuario> existing = usuarioRepository.findByCorreo(correo);
+        if (existing.isPresent()) return null;
+
+        Usuario usuario = new Usuario();
+        usuario.setCorreo(correo);
+        usuario.setContrasena(passwordEncoder.encode(contrasena));
+        usuario.setActivo(true);
+        return usuarioRepository.save(usuario);
+    }
+
+    private Usuario findById(Long id) {
+        return usuarioRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+    }
 }
