@@ -5,7 +5,6 @@ Sistema completo de autenticación de usuarios, con backend en Spring Boot, fron
 
 ## 🎯 Objetivo
 
-
 Implementar un sistema de autenticación seguro mediante correo y contraseña, con:
 
 - Rutas protegidas
@@ -19,9 +18,9 @@ Implementar un sistema de autenticación seguro mediante correo y contraseña, c
 | Componente      | Tecnología                     |
 |----------------|--------------------------------|
 | Backend         | Spring Boot 3.x (Java 17)     |
-| Seguridad       | Spring Security + JWT futuro   |
+| Seguridad       | Spring Security + JWT          |
 | Base de datos   | PostgreSQL 15+                 |
-| Frontend        | React + Vite + Tailwind CSS   |
+| Frontend        | React + Vite + Tailwind CSS    |
 | Contenerización | Docker + Docker Compose       |
 
 ---
@@ -58,36 +57,54 @@ Implementar un sistema de autenticación seguro mediante correo y contraseña, c
 ├── docker-compose.override.yml
 └── README.md
 
+
 ```
-▶️ Ejecución
-Con Docker Compose
+## ▶️ Ejecución
+### Levantar solo producción
 ```bash
-docker-compose down
-docker-compose up --build -d
-
+docker-compose -f docker-compose.yml --env-file .env.production up --build
 ```
-Backend: http://localhost:8080
+- Usa tu Dockerfile.prod tanto en frontend como backend.
+- Frontend servirá en puerto 80 con Nginx.
+- Backend servirá en 8080.
 
-Frontend: http://localhost:5173
+### Levantar solo desarrollo
 
-PostgreSQL: puerto 5432 (interno)
+```bash
+docker-compose --env-file .env.development up --build
+```
+- Usa tu docker-compose.override.yml y Dockerfile.dev.
+- Frontend en 5173 con hot-reload de Vite.
+- Backend en 8080, también con live reload si lo configuras.
 
-### Pruebas rápidas con curl
+
+### 🔄 Probando la API con curl
 
 ```bash
 # Healthcheck
 curl http://localhost:8080/health
 
 # Registro de usuario
-curl -X POST http://localhost:8080/auth/register \
+curl -X POST http://localhost:8080/api/auth/register \
 -H "Content-Type: application/json" \
--d '{"correo":"usuario@ejemplo.com","contrasena":"123456"}'
+-d '{
+  "correo": "usuario1@example.com",
+  "contrasena": "MiPassword123",
+  "nombres": "Juan",
+  "apellidos": "Perez",
+  "tipoDocumento": "DNI",
+  "documento": "12345678",
+  "telefono": "987654321",
+  "roles": ["MEDICO", "COORDINADOR_MEDICO"]
+}'
 
 # Login
-curl -X POST http://localhost:8080/auth/login \
+curl -X POST http://localhost:8080/api/auth/login \
 -H "Content-Type: application/json" \
--d '{"correo":"styp611@outlook.com", "contrasena":"123456"}'
-
+-d '{
+  "correo": "guille@outlook.com",
+  "contrasena": "admin123"
+}'
 ```
 
 ### Probando la conexion de base de datos
@@ -104,163 +121,29 @@ echo $SPRING_DATASOURCE_PASSWORD
 
 ```
 
-Debe salir las credenciales de la autenticacion registradas por .env:
+Para conectarte desde la consola de Docker:
 ```bash
-jdbc:postgresql://db:5432/mydb
-postgres
-postgres
-styp@MacBookPro-2622 3.Proyecto_Login_Springboot % 
-```
-
-## Relaciones entre tablas de usuarios, roles y profesionales
-
-No es necesario crear llaves foráneas adicionales entre `profesionales` y `usuario_roles`. La razón es la siguiente:
-
-- La tabla `profesionales` ya tiene la columna `usuario_id` que referencia a `usuarios(id)` ✅
-- La tabla `usuario_roles` también referencia a `usuarios(id)` ✅
-
-Esto significa que la relación **profesional → roles** ya existe implícitamente a través de la tabla `usuarios`:
-
-profesionales.usuario_id → usuarios.id → usuario_roles.usuario_id → roles.id
-
-
-Agregar una llave foránea directa de `profesionales` a `usuario_roles` sería **redundante** y podría generar inconsistencias, porque `usuario_roles` puede tener múltiples filas por usuario y no hay un único rol por profesional.
-
-La forma correcta de manejar la relación es mediante **JOINs** en las consultas SQL. Por ejemplo, para obtener los roles de cada profesional:
-
-```sql
-SELECT p.nombres, p.apellidos, r.nombre AS rol
-FROM profesionales p
-JOIN usuarios u ON p.usuario_id = u.id
-JOIN usuario_roles ur ON ur.usuario_id = u.id
-JOIN roles r ON r.id = ur.rol_id;
-```
-✅ Esta estrategia mantiene la integridad referencial y evita relaciones duplicadas innecesarias.
-
-
-## ✅ Control de usuarios activos
-
-
-La columna `activo` en la tabla `usuarios` indica si un usuario está habilitado para autenticarse:
-
-- `true` → usuario activo, puede iniciar sesión ✅
-- `false` → usuario inactivo, no puede iniciar sesión ⚠️
-
-**Importancia:**
-
-- Permite deshabilitar cuentas temporal o permanentemente sin eliminarlas.
-- Mejora la seguridad y el control administrativo.
-- Evita que usuarios con roles asignados accedan si su cuenta está desactivada.
-
-En la lógica de login, se valida que `activo = true` antes de generar el token JWT.
-
-```sql
-
--- Ver todos los usuarios activos
-SELECT id, correo, activo
-FROM usuarios
-WHERE activo = true;
-
-```
-
-Para conectarme a mi base de datos desde consola:
-
-```sql
 docker exec -it 3proyecto_login_springboot-db-1 psql -U postgres -d mydb
+
 ```
 
-El enlace para probar la api de profesionales:
+## 🏗 Arquitectura de Usuarios y Profesionales
 
-```http request
-http://localhost:8080/api/profesionales
-```
-Este me dará un json como
-```json
-[
-{
-"id": 2,
-"nombres": "Maria",
-"apellidos": "Lopez",
-"documento": "23456789",
-"colegiatura": "C002",
-"especialidad": "Pediatría",
-"ipressId": 2,
-"telefono": "987654322",
-"email": null,
-"activo": true,
-"createdAt": "2025-08-22T00:02:27.868584",
-"updatedAt": "2025-08-22T00:02:27.868584",
-"tipoDocumento": "DNI",
-"usuarioId": 5,
-"fechaNacimiento": null
-},
-{
-"id": 3,
-"nombres": "Carlos",
-"apellidos": "Gomez",
-"documento": "E1234567",
-"colegiatura": "C003",
-"especialidad": "Ginecología",
-"ipressId": 1,
-"telefono": "987654323",
-"email": null,
-"activo": true,
-"createdAt": "2025-08-22T00:02:27.868584",
-"updatedAt": "2025-08-22T00:02:27.868584",
-"tipoDocumento": "C.Extranjería",
-"usuarioId": 6,
-"fechaNacimiento": null
-},
-{
-"id": 4,
-"nombres": "Ana",
-"apellidos": "Martinez",
-"documento": "34567890",
-"colegiatura": "C004",
-"especialidad": "Cardiología",
-"ipressId": 3,
-"telefono": "987654324",
-"email": null,
-"activo": true,
-"createdAt": "2025-08-22T00:02:27.868584",
-"updatedAt": "2025-08-22T00:02:27.868584",
-"tipoDocumento": "DNI",
-"usuarioId": null,
-"fechaNacimiento": null
-},
+- **usuarios**: autenticación, roles y estado.
+- **profesionales**: datos del profesional y vinculación con usuario.
 
-]
-```
-## Arquitectura de Usuarios y Profesionales
+### Buenas prácticas
 
-Este proyecto está diseñado para ser **real, escalable y seguro**, manteniendo una clara separación entre `usuarios` y `profesionales`.
+1. Validar `usuario_id` y rol al crear un profesional.
+2. Asignar automáticamente rol “Profesional” si no existe.
+3. Usar DTOs combinados para el frontend (`ProfesionalDTO`).
+4. Mantener `usuarios` solo con campos de autenticación y roles.
 
-### Estructura de Tablas
+### 🔑 Claves de implementación
 
-- **usuarios**: Maneja la **autenticación**, los **roles** y el **estado** (`activo`/`inactivo`).
-- **profesionales**: Contiene la información específica del profesional, como **nombre**, **especialidad**, **RNE**, etc., y está vinculada a un usuario existente.
-
-### Buenas Prácticas
-
-#### 1. Validar la relación al crear profesionales
-- Asegúrate de que `usuario_id` existe y tiene el rol adecuado (`Profesional`).
-- Esto evita inconsistencias en la tabla `usuario_roles`.
-
-#### 2. Automatizar la asignación de roles
-- Al crear un profesional, si el usuario aún no tiene el rol “Profesional”, asignarlo automáticamente en `usuario_roles`.
-- Así se evita la manipulación manual de la tabla intermedia.
-
-#### 3. DTOs claros para el frontend
-- Combina los datos de `usuario` y `profesional` en un solo DTO (`ProfesionalDTO`).
-- Esto permite al frontend obtener toda la información sin hacer joins complejos ni preocuparse por los roles.
-
-#### 4. Evitar campos innecesarios en `usuario`
-- Mantén en `usuario` solo los campos relacionados con **autenticación y roles**.
-- Toda la información específica del profesional se gestiona en la tabla `profesionales`.
-
-### 💡 Resumen práctico
-
-- Mantén las tablas separadas: `usuarios` y `profesionales`.
-- Automatiza la asignación de roles.
-- Usa DTOs combinados para el frontend.
-- No elimines la tabla intermedia `usuario_roles` si quieres que un usuario pueda tener múltiples roles.
+- `ProfesionalService` para todas las operaciones de negocio.
+- Validación de profesionales existentes por usuario.
+- Operaciones CRUD completas.
+- Listado por especialidad y por usuario.
+- Respuestas HTTP claras (404, 400, 500).
+- Compatible con JWT, roles y permisos.
