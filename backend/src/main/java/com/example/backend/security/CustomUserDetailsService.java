@@ -1,13 +1,7 @@
 package com.example.backend.security;
 
-import java.util.List;
-import java.util.stream.Collectors;
-
 import com.example.backend.entity.Usuario;
 import com.example.backend.repository.UsuarioRepository;
-
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.*;
 import org.springframework.stereotype.Service;
 
@@ -23,20 +17,17 @@ public class CustomUserDetailsService implements UserDetailsService {
     @Override
     public UserDetails loadUserByUsername(String correo) throws UsernameNotFoundException {
         Usuario usuario = usuarioRepository.findByCorreo(correo)
-                .orElseThrow(() -> new UsernameNotFoundException("Usuario no encontrado"));
+                .orElseThrow(() -> new UsernameNotFoundException("Usuario no encontrado: " + correo));
 
-        List<GrantedAuthority> authorities = usuario.getRoles().stream()
-                .map(r -> new SimpleGrantedAuthority("ROLE_" + r.getNombre()))
-                .collect(Collectors.toList());
+        String[] rolesArray = usuario.getRoles() != null
+                ? usuario.getRoles().stream().map(r -> r.getNombre()).toArray(String[]::new)
+                : new String[]{"USER"};
 
-        return new org.springframework.security.core.userdetails.User(
-                usuario.getCorreo(),
-                usuario.getContrasena(),
-                usuario.isActivo(),
-                true,
-                true,
-                true,
-                authorities
-        );
+        return User.builder()
+                .username(usuario.getCorreo())
+                .password(usuario.getContrasena())
+                .roles(rolesArray)
+                .disabled(!usuario.isActivo())
+                .build();
     }
 }

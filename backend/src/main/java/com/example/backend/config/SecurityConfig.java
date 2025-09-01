@@ -42,9 +42,9 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
-                                "/api/auth/**",   // <-- corregido
-                                "/health",
-                                "/public/**"
+                                "/api/auth/**",
+                                "/public/**",
+                                "/health"
                         ).permitAll()
                         .anyRequest().authenticated()
                 )
