@@ -78,13 +78,15 @@ docker-compose --env-file .env.development up --build
 - Backend en 8080, también con live reload si lo configuras.
 
 
-### 🔄 Probando la API con curl
+## 🔄 Probando la API con curl
 
+### Healthcheck
 ```bash
-# Healthcheck
 curl http://localhost:8080/health
+```
 
-# Registro de usuario
+### Registro de usuario
+```bash
 curl -X POST http://localhost:8080/api/auth/register \
 -H "Content-Type: application/json" \
 -d '{
@@ -98,7 +100,22 @@ curl -X POST http://localhost:8080/api/auth/register \
   "roles": ["MEDICO", "COORDINADOR_MEDICO"]
 }'
 
-# Login
+```
+Consulta de base de datos para validar el usuario creado:
+```sql
+SELECT u.id AS usuario_id,
+       u.correo,
+       r.nombre AS rol
+FROM usuario_roles ur
+JOIN usuarios u ON ur.usuario_id = u.id
+JOIN roles r ON ur.rol_id = r.id
+WHERE u.correo = 'usuario1@example.com';
+
+```
+
+### Login
+```bash
+
 curl -X POST http://localhost:8080/api/auth/login \
 -H "Content-Type: application/json" \
 -d '{

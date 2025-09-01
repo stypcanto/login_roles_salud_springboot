@@ -31,7 +31,7 @@ public class AuthService {
     }
 
     /**
-     * Registrar usuario y devolverlo
+     * Registrar usuario con roles existentes y devolverlo
      */
     public Usuario registerAndReturnUser(String correo,
                                          String contrasena,
@@ -52,45 +52,46 @@ public class AuthService {
         usuario.setApellidos(apellidos);
         usuario.setTipoDocumento(tipoDocumento);
         usuario.setDocumento(documento);
-        usuario.setActivo(true);
+        usuario.setActivo(false); // Pendiente de aprobación
 
-        Set<Rol> roles = getOrCreateRoles(nombresRoles);
+        // Asignamos roles existentes
+        Set<Rol> roles = new HashSet<>();
+        if (nombresRoles != null) {
+            for (String nombreRol : nombresRoles) {
+                Rol rol = rolRepository.findByNombre(nombreRol)
+                        .orElseThrow(() -> new RuntimeException("Rol no encontrado: " + nombreRol));
+                roles.add(rol);
+            }
+        }
         usuario.setRoles(roles);
 
         return usuarioRepository.save(usuario);
     }
 
     /**
-     * Crear o recuperar roles existentes
+     * Buscar usuario por correo
      */
-    public Set<Rol> getOrCreateRoles(Set<String> nombresRoles) {
-        Set<Rol> roles = new HashSet<>();
-        if (nombresRoles != null) {
-            for (String nombreRol : nombresRoles) {
-                Rol rol = rolRepository.findByNombre(nombreRol)
-                        .orElseGet(() -> {
-                            Rol nuevoRol = new Rol();
-                            nuevoRol.setNombre(nombreRol);
-                            return rolRepository.save(nuevoRol);
-                        });
-                roles.add(rol);
-            }
-        }
-        return roles;
-    }
-
     public Usuario findByCorreo(String correo) {
         return usuarioRepository.findByCorreo(correo).orElse(null);
     }
 
+    /**
+     * Buscar profesional por ID de usuario
+     */
     public Profesional getProfesionalByUsuarioId(Long usuarioId) {
         return profesionalRepository.findByUsuario_Id(usuarioId).orElse(null);
     }
 
+    /**
+     * Guardar profesional
+     */
     public void saveProfesional(Profesional profesional) {
         profesionalRepository.save(profesional);
     }
 
+    /**
+     * Guardar usuario
+     */
     public void saveUsuario(Usuario usuario) {
         usuarioRepository.save(usuario);
     }
