@@ -113,6 +113,22 @@ WHERE u.correo = 'usuario1@example.com';
 
 ```
 
+Para ver todos los usuarios con sus roles sin filtrar por correo:
+```sql
+SELECT 
+    u.id AS usuario_id,
+    u.correo,
+    u.nombres,
+    u.apellidos,
+    STRING_AGG(r.nombre, ', ') AS roles
+FROM usuarios u
+LEFT JOIN usuario_roles ur ON u.id = ur.usuario_id
+LEFT JOIN roles r ON ur.rol_id = r.id
+GROUP BY u.id, u.correo, u.nombres, u.apellidos
+ORDER BY u.id;
+
+```
+
 ### Login
 ```bash
 

@@ -15,7 +15,7 @@ const Login = () => {
     [ROLES.SUPERADMIN]: "/admin-panel",
     [ROLES.ADMINISTRADOR]: "/admin-panel",
     [ROLES.COORD_MEDICO]: "/coordinador-especialidades",
-    [ROLES.MEDICO]: "/portal-profesional-salud",
+    [ROLES.MEDICO]: "/portal-medico",
     [ROLES.COORD_ADMISION]: "/gestion-territorial",
     [ROLES.PROFESIONAL_SALUD]: "/portal-profesional-salud",
   };
@@ -44,17 +44,17 @@ const Login = () => {
         return;
       }
 
-      // Normalizamos roles (ej: "Coordinador Medico" -> "COORDINADOR MEDICO")
-      const userRoles = (roles || []).map((r) => r.nombre?.toUpperCase());
+      // 🔹 CORRECCIÓN: roles ya son strings
+      const userRoles = (roles || []).map((r) => r.toUpperCase());
 
       // Guardamos datos completos en localStorage
       const user = {
         id: profesional?.id,
         nombres: profesional?.nombres,
         apellidos: profesional?.apellidos,
-        correo: profesional?.correoUsuario,
+        correo: profesional?.correoUsuario || correo,
         roles: userRoles,
-        activo: profesional?.activoUsuario,
+        activo: profesional?.activoUsuario ?? true,
       };
 
       localStorage.setItem("token", token);
@@ -67,7 +67,7 @@ const Login = () => {
 
     } catch (err) {
       console.error("Error de conexión:", err);
-      if (err.response) setError(err.response.data?.message || "Credenciales incorrectas");
+      if (err.response) setError(err.response.data || "Credenciales incorrectas");
       else if (err.request) setError("No se pudo conectar con el servidor");
       else setError("Ocurrió un error inesperado");
     } finally {

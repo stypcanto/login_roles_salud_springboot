@@ -42,10 +42,16 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
-                                "/api/auth/**",
+                                "/api/auth/login",
+                                "/api/auth/register",
+                                "/api/auth/forgot-password",
+                                "/api/auth/reset-password",
                                 "/public/**",
                                 "/health"
                         ).permitAll()
+                        .requestMatchers("/api/auth/usuarios/**").hasRole("SUPERADMIN")
+                        .requestMatchers("/api/portaladmin/**").hasRole("ADMINISTRADOR") // solo administradores
+                        .requestMatchers("/api/profesionales/**").hasRole("PROFESIONAL_SALUD") // profesionales
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
