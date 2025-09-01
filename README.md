@@ -160,6 +160,9 @@ docker exec -it 3proyecto_login_springboot-db-1 psql -U postgres -d mydb
 
 ```
 
+
+
+
 ## 🏗 Arquitectura de Usuarios y Profesionales
 
 - **usuarios**: autenticación, roles y estado.
@@ -172,11 +175,51 @@ docker exec -it 3proyecto_login_springboot-db-1 psql -U postgres -d mydb
 3. Usar DTOs combinados para el frontend (`ProfesionalDTO`).
 4. Mantener `usuarios` solo con campos de autenticación y roles.
 
-### 🔑 Claves de implementación
+## Estructura y Claves del Backend
 
-- `ProfesionalService` para todas las operaciones de negocio.
-- Validación de profesionales existentes por usuario.
-- Operaciones CRUD completas.
-- Listado por especialidad y por usuario.
-- Respuestas HTTP claras (404, 400, 500).
-- Compatible con JWT, roles y permisos.
+### ✅ Notas importantes sobre esta estructura
+
+La estructura del backend está organizada para facilitar la autenticación, autorización y manejo de profesionales y usuarios, sin modificar la base de datos existente:
+
+- **`controller/`** → Contiene todos los endpoints REST: login, registro, profesionales, usuarios y health check.
+- **`dto/`** → Objetos de transferencia de datos (request/response).
+- **`entity/`** → Clases que representan las tablas existentes: usuarios, roles, profesionales.
+- **`repository/`** → Interfaces `JpaRepository` para consultas a la base de datos.
+- **`service/`** → Lógica de negocio: autenticación, registro, recuperación de contraseña.
+- **`security/`** → JWT, filtros de autenticación y `UserDetailsService`.
+- **`config/`** → Configuración de Spring Security, CORS y web.
+
+> Con esta estructura, tu backend puede autenticar usuarios, generar JWT y verificar roles y permisos sin modificar la base de datos existente.
+
+---
+
+### 🔑 Claves de esta implementación
+
+1. **Uso centralizado del servicio**: Todas las operaciones de negocio pasan por `ProfesionalService`.
+2. **Validación de usuarios**: Antes de crear un profesional, se verifica si el usuario ya tiene uno asignado.
+3. **CRUD completo**: Permite crear, leer, actualizar y eliminar registros.
+4. **Filtrado de profesionales**: Posibilidad de listar profesionales por especialidad y por usuario.
+5. **Respuestas HTTP claras**: Manejo de códigos como `404`, `400` y `500`.
+6. **Compatibilidad JWT**: Funciona con tu estructura actual de JWT, roles y permisos. 
+
+
+## ⚙️ Mejoras y Buenas Prácticas Implementadas
+
+### Backend
+
+- Eliminación de métodos redundantes (ej. `getOrCreateRoles`) para mayor claridad.
+- Solo se pueden asignar **roles existentes**; se lanza excepción si algún rol no existe.
+- Los usuarios nuevos se marcan como **pendientes de aprobación** (`activo = false`) hasta ser aprobados.
+- Métodos claros y separados para manejar `Profesional` y `Usuario`.
+- Operaciones protegidas por roles (`hasRole("SUPERADMIN")`) para PUT, DELETE o cualquier endpoint sensible.
+- Antes de usar un **token JWT**, se debe hacer login nuevamente para incluir cualquier nuevo rol en el token.
+- El token se debe enviar en la cabecera `Authorization: Bearer <token>` para acceder a endpoints protegidos.
+
+###  💻 Frontend
+
+- `AdminUsersPanel.jsx` centraliza la carga de usuarios y especialidades, pasando los datos a `UserTable`.
+- `UserTable.jsx` no realiza fetch; recibe usuarios y especialidades como props, evitando duplicidad de datos y simplificando la edición en modales.
+- Los roles se normalizan en mayúsculas para evitar inconsistencias.
+- `UserModal` ahora permite editar/crear usuarios y se sincroniza correctamente con la tabla.
+- Se agregaron los campos `tipoDocumento` y `numeroDocumento`.
+- La tabla muestra correctamente usuarios sin roles, indicando **"Sin rol"** con un badge visual.
